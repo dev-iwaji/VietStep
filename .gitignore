@@ -1,0 +1,45 @@
+# Gradle
+.gradle/
+**/build/
+
+# Local configuration
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# Android generated files
+captures/
+
+# Keystore and signing files
+*.jks
+*.keystore
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Firebase project configuration
+google-services.json
+
+# Heap dump
+*.hprof
+
+# Build files
+.gradle/
+**/build/
+
+# Local settings
+local.properties
+
+# Android Studio
+.idea/
+*.iml

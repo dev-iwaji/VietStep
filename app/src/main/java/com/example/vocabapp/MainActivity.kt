@@ -1,0 +1,135 @@
+package com.example.vocabapp
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+
+import kotlinx.coroutines.launch
+import androidx.compose.animation.core.CubicBezierEasing
+
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.alpha
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vocabapp.ui.auth.AuthViewModel
+import com.example.vocabapp.ui.login.LoginScreen
+import com.example.vocabapp.ui.main.MainScreen
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        com.github.mikephil.charting.utils.Utils.init(this)
+
+        setContent {
+            var showSplash by remember { mutableStateOf(true) }
+
+            val authViewModel: AuthViewModel = viewModel()
+
+            val authState by authViewModel.uiState.collectAsState()
+
+            authViewModel.init()
+
+            if (showSplash) {
+                SplashScreen {
+                    showSplash = false
+                }
+            } else {
+
+                when {
+                    showSplash -> {
+                        SplashScreen {
+                            showSplash = false
+                        }
+                    }
+                    authState.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    authState.isLoggedIn -> {
+                        MainScreen(
+                            authViewModel = authViewModel
+                        )
+                    }
+                    authState.isOffline -> {
+                        MainScreen(
+                            authViewModel = authViewModel
+                        )
+                    }
+                    else -> {
+                        LoginScreen(
+                            authViewModel = authViewModel
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SplashScreen(onFinish: () -> Unit) {
+    val alpha = remember { Animatable(1f) }
+    val scale = remember { Animatable(0.6f) }
+
+    LaunchedEffect(Unit) {
+        val scaleJob = launch {
+            scale.animateTo(
+                targetValue = 2.0f,   // ← 最終的にもっと大きくしたい
+                animationSpec = tween(
+                    durationMillis = 1500,
+                    easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+                )
+            )
+        }
+
+        val alphaJob = launch {
+            alpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    durationMillis = 1000,
+                    easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+                )
+            )
+        }
+
+        scaleJob.join()
+        alphaJob.join()
+        onFinish()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+
+        // ★ ここが重要：Image を Box で包む
+        Box(
+            modifier = Modifier
+                .scale(scale.value)   // ← 初期フレームから確実に反映される
+                .alpha(alpha.value)
+        ) {
+            Image(
+                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                contentDescription = null,
+                modifier = Modifier.size(180.dp)  // ← Image 自体には scale をかけない
+            )
+        }
+    }
+}

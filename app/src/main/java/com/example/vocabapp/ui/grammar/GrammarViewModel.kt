@@ -34,17 +34,17 @@ class GrammarViewModel : ViewModel() {
         _uiState.asStateFlow()
 
     fun load() {
+        loadLocalData()
+    }
 
-        viewModelScope.launch {
-            repository.restoreFromFirebase()
+    private fun loadLocalData() {
 
-            _uiState.update {
+        _uiState.update {
 
-                it.copy(
-                    selectedTheme = repository.loadSelectedTheme(),
-                    speechRate = repository.loadSpeechRate(),
-                )
-            }
+            it.copy(
+                selectedTheme = repository.loadSelectedTheme(),
+                speechRate = repository.loadSpeechRate(),
+            )
         }
     }
 

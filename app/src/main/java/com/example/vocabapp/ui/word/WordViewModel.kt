@@ -24,7 +24,7 @@ import com.example.vocabapp.util.saveWordProgress
 import com.example.vocabapp.util.loadWordProgress
 import kotlinx.coroutines.launch
 import android.util.Log
-import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Job
 
 class WordViewModel : ViewModel() {
 
@@ -50,49 +50,123 @@ class WordViewModel : ViewModel() {
     val uiState =
         _uiState.asStateFlow()
 
-    fun load(
-        context: android.content.Context
-    ) {
+    private var uploadJob: Job? = null
 
-        viewModelScope.launch {
-            repository.restoreCsvFiles(context)
+    private var learningRevision: Long = 0L
 
-            repository.restoreFromFirebase()
+    fun load(context: Context) {
+        loadLocalData(context)
 
-            _uiState.update {
+        _uiState.update {
+            it.copy(
+                isInitialized = true
+            )
+        }
+    }
 
-                it.copy(
-                    selectedPos = repository.loadFilterPos(),
-                    weakMode = repository.loadWeakMode(),
-                    deckIndex = repository.loadDeckIndex(),
-                    favoriteOnly = repository.loadFavoriteOnly(),
-                    favorites = repository.loadFavorites(),
-                )
+    private fun loadLocalData(context: Context) {
+
+        _uiState.update {
+            it.copy(
+                selectedPos = repository.loadFilterPos(),
+                weakMode = repository.loadWeakMode(),
+                deckIndex = repository.loadDeckIndex(),
+                favoriteOnly = repository.loadFavoriteOnly(),
+                favorites = repository.loadFavorites(),
+            )
+        }
+
+        val mergedWords = rebuildWords(context)
+        val savedDeckJson = repository.loadDeckOrder()
+
+        if (!savedDeckJson.isNullOrBlank()) {
+            val savedIds: List<String> =
+                try {
+                    Gson().fromJson(
+                        savedDeckJson,
+                        object : TypeToken<List<String>>() {}.type
+                    )
+                } catch (e: Exception) {
+                    emptyList()
+                }
+
+            val restored = savedIds.mapNotNull { id ->
+                mergedWords.find { it.deckKey() == id }
             }
 
-            val mergedWords = rebuildWords(context)
+            if (restored.isNotEmpty()) {
+                setDeck(restored)
 
-            val savedDeckJson = repository.loadDeckOrder()
+                val savedIndex = repository.loadDeckIndex()
+                    .coerceIn(0, restored.lastIndex)
 
-            if (savedDeckJson != null) {
-                val savedIds: List<String> =
-                    Gson().fromJson(savedDeckJson, object : TypeToken<List<String>>() {}.type)
+                setDeckIndex(savedIndex)
+                return
+            }
+        }
 
-                val restored =
-                    savedIds.mapNotNull { id ->
-                        mergedWords.find { it.deckKey() == id }
+        rebuildDeck()
+    }
+
+    fun uploadLearningStateIfDirty() {
+
+        if (!::repository.isInitialized) {
+            return
+        }
+
+        if (!uiState.value.dirty) {
+            return
+        }
+
+        if (uploadJob?.isActive == true) {
+            return
+        }
+
+        val revisionAtUpload =
+            learningRevision
+
+        uploadJob =
+            viewModelScope.launch {
+
+                val result =
+                    repository.uploadLearningState()
+
+                result.onSuccess {
+
+                    /*
+                     * アップロード中に新しい回答がなければ、
+                     * dirtyを解除する。
+                     */
+                    if (
+                        learningRevision ==
+                        revisionAtUpload
+                    ) {
+                        _uiState.update {
+                            it.copy(
+                                dirty = false
+                            )
+                        }
                     }
 
-                if (restored.isNotEmpty()) {
-                    setDeck(restored)
-                    return@launch
-                } else {
-                    rebuildDeck()
+                    Log.d(
+                        "WORD_SYNC",
+                        "学習状態をアップロードしました"
+                    )
+                }
+
+                result.onFailure { error ->
+
+                    /*
+                     * 失敗した場合はdirtyを残す。
+                     * 次にタブを離れるときなどに再試行できる。
+                     */
+                    Log.w(
+                        "WORD_SYNC",
+                        "学習状態をアップロードできませんでした",
+                        error
+                    )
                 }
             }
-
-            rebuildDeck()
-        }
     }
 
     fun rebuildDeck() {
@@ -113,7 +187,7 @@ class WordViewModel : ViewModel() {
     fun toggleFavorites(
         word: Word
     ) {
-        Log.d("WORD", "favorites=${uiState.value.favorites}")
+
         val newFavorites =
             if (uiState.value.favorites.contains(word.deckKey())) {
                 uiState.value.favorites - word.deckKey()
@@ -130,7 +204,7 @@ class WordViewModel : ViewModel() {
 
     fun toggleCsvFile(
         file: CsvFile,
-        context: android.content.Context
+        context: Context
     ) {
         val updated = uiState.value.csvList.map {
             if (it.name == file.name)
@@ -165,7 +239,7 @@ class WordViewModel : ViewModel() {
     fun addCsvFile(
         uri: String,
         fileName: String,
-        context: android.content.Context
+        context: Context
     ) {
         val newFile = CsvFile(
             name = fileName,
@@ -198,7 +272,7 @@ class WordViewModel : ViewModel() {
 
     fun removeCsvFile(
         file: CsvFile,
-        context: android.content.Context
+        context: Context
     ) {
         val updated = uiState.value.csvList - file
 
@@ -226,8 +300,6 @@ class WordViewModel : ViewModel() {
         }
 
         rebuildDeck()
-
-        repository.syncDeckToFirebase()
     }
 
     fun setWeakMode(
@@ -243,8 +315,6 @@ class WordViewModel : ViewModel() {
         }
 
         rebuildDeck()
-
-        repository.syncDeckToFirebase()
     }
 
     fun setStudyMode(
@@ -269,7 +339,6 @@ class WordViewModel : ViewModel() {
             }
         }
 
-        Log.d("WORD", "favoriteCount=${uiState.value.favorites.size}")
         return filteredByPos
 
        .let { list ->
@@ -305,15 +374,17 @@ class WordViewModel : ViewModel() {
 
         repository.addStudyResult(correct)
 
+        learningRevision++
+
         _uiState.update {
             val updatedWords =
-                it.words.map {
+                it.words.map { currentWord ->
                     if (
-                        it.deckKey() == word.deckKey()
+                        currentWord.deckKey() == word.deckKey()
                     )
                         updated
                     else
-                        it
+                        currentWord
                 }
 
             it.copy(
@@ -340,8 +411,6 @@ class WordViewModel : ViewModel() {
         }
 
         rebuildDeck()
-
-        repository.syncDeckToFirebase()
     }
 
     fun getTodayStat(): DailyStat? {
@@ -406,7 +475,7 @@ class WordViewModel : ViewModel() {
 
     private fun setCsvFileList(
         list: List<CsvFile>,
-        context: android.content.Context
+        context: Context
     ) {
 
         _uiState.update {
@@ -420,6 +489,37 @@ class WordViewModel : ViewModel() {
         rebuildWords(context)
     }
 
+    private fun nextCard() {
+
+        val currentIndex = uiState.value.deckIndex
+
+        val lastIndex = uiState.value.deck.lastIndex
+
+        if (lastIndex < 0) {
+            return
+        }
+
+        /*
+         * 回答したカードが最後のカードなら、
+         * これでデッキを1周したことになる。
+         */
+        val completedRound =
+            currentIndex == lastIndex
+
+        val nextIndex =
+            if (completedRound) {
+                0
+            } else {
+                currentIndex + 1
+            }
+
+        setDeckIndex(nextIndex)
+
+        if (completedRound) {
+            uploadLearningStateIfDirty()
+        }
+    }
+/*
     private fun nextCard() {
         val next =
 
@@ -453,7 +553,7 @@ class WordViewModel : ViewModel() {
             }
         }
     }
-
+*/
     private fun saveDeckOrder() {
         val deckIds = uiState.value.deck.map { it.deckKey() }
 

@@ -40,12 +40,9 @@ import com.example.vocabapp.ui.components.GenericQuizUI
 fun ChunkScreen(
     soundEnabled: Boolean,
     soundVolume: Float,
-    prefs: SharedPreferences,
-    tts: TextToSpeech?
+    tts: TextToSpeech?,
+    viewModel: ChunkViewModel
 ) {
-
-    val viewModel: ChunkViewModel =
-        viewModel()
 
     val uiState by
         viewModel.uiState.collectAsState()
@@ -57,12 +54,13 @@ fun ChunkScreen(
 
     var completedLap by rememberSaveable { mutableStateOf(false) }
 
+/*
     LaunchedEffect(Unit) {
         viewModel.initialize(prefs)
         viewModel.load()
         Log.d("ChunkScreen", "load called")
     }
-/*
+
     // ✅ フィルター変更によるデッキ再生成
     LaunchedEffect(
         uiState.selectedCategory,

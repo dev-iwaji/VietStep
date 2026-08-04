@@ -33,20 +33,12 @@ import com.example.vocabapp.manager.TtsManager
 fun ConversationScreen(
     soundEnabled: Boolean,
     soundVolume: Float,
-    prefs: SharedPreferences,
-    tts: TextToSpeech?
+    tts: TextToSpeech?,
+    viewModel: ConversationViewModel
 ) {
-
-    val viewModel: ConversationViewModel =
-        viewModel()
 
     val uiState by
     viewModel.uiState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.initialize(prefs)
-        viewModel.load()
-    }
 
     var partList = remember(
         uiState.selectedTheme

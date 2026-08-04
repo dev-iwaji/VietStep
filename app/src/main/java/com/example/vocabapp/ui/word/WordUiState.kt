@@ -25,6 +25,12 @@ data class WordUiState(
 
     val studyMode: String = "card",
 
-    val csvList: List<CsvFile> = emptyList()
+    val csvList: List<CsvFile> = emptyList(),
+
+    val isSyncing: Boolean = true,
+
+    val syncMessage: String = "",
+
+    val isInitialized: Boolean = false,
 )
 

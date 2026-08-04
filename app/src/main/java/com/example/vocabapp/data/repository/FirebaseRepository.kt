@@ -4,10 +4,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.example.vocabapp.data.model.FirebaseCsv
-import android.util.Log
+import com.example.vocabapp.data.model.ChunkLeaningState
+import com.example.vocabapp.data.model.WordLearningState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
+import android.util.Log
+import com.example.vocabapp.data.model.ConversationLeaningState
+import com.example.vocabapp.data.model.GrammarLeaningState
 
 class FirebaseRepository {
     private val db =
@@ -96,6 +99,138 @@ class FirebaseRepository {
                 .await()
 
         return snapshot.getBoolean("darkMode") ?: false
+    }
+
+    suspend fun saveWordLearningState(
+        progress: String,
+        deckOrder: String,
+        deckIndex: Int,
+        studyHistory: String
+    ) {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
+
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("word")
+
+            db.runBatch { batch ->
+
+                batch.set(
+                    wordCollection.document("progress"),
+                    mapOf(
+                        "progress" to progress
+                    )
+                )
+
+            batch.set(
+                wordCollection.document("deckOrder"),
+                mapOf(
+                    "deckOrder" to deckOrder
+                )
+            )
+
+            batch.set(
+                wordCollection.document("deckIndex"),
+                mapOf(
+                    "deckIndex" to deckIndex
+                )
+            )
+
+            batch.set(
+                wordCollection.document("studyHistory"),
+                mapOf(
+                    "studyHistory" to studyHistory
+                )
+            )
+
+        }.await()
+    }
+
+    suspend fun loadWordLearningState(): WordLearningState {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
+
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("word")
+
+        val progressSnapshot =
+            wordCollection
+                .document("progress")
+                .get()
+                .await()
+
+        val deckOrderSnapshot =
+            wordCollection
+                .document("deckOrder")
+                .get()
+                .await()
+
+        val deckIndexSnapshot =
+            wordCollection
+                .document("deckIndex")
+                .get()
+                .await()
+
+        val studyHistorySnapshot =
+            wordCollection
+                .document("studyHistory")
+                .get()
+                .await()
+
+       return WordLearningState(
+            progress =
+                if (progressSnapshot.exists()) {
+                    progressSnapshot
+                        .getString("progress")
+                        ?: "[]"
+                } else {
+                    "[]"
+                },
+
+            deckOrder =
+                if (deckOrderSnapshot.exists()) {
+                    deckOrderSnapshot
+                        .getString("deckOrder")
+                        ?: "[]"
+                } else {
+                    "[]"
+                },
+
+            deckIndex =
+                if (deckIndexSnapshot.exists()) {
+                    deckIndexSnapshot
+                        .getLong("deckIndex")
+                        ?.toInt()
+                        ?: 0
+                } else {
+                    0
+                },
+
+            studyHistory =
+            if (studyHistorySnapshot.exists()) {
+                studyHistorySnapshot
+                    .getString("studyHistory")
+                    ?: "[]"
+                } else {
+                    "[]"
+                },
+
+            filterPos = loadWordFilterPos(),
+
+            favorites = loadWordFavorites(),
+
+            favoriteOnly = loadWordFavoriteOnly(),
+
+            weakMode = loadWordWeakMode()
+        )
     }
 
     fun saveCsvFiles(
@@ -360,10 +495,13 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-        val favorites =
-            snapshot.get("favorites") as? List<String> ?: emptyList()
+        if (!snapshot.exists()) {
+            return emptySet()
+        }
 
-        return favorites.toSet()
+        return (snapshot.get("favorites") as? List<String>)
+            ?.toSet()
+            ?: emptySet()
     }
 
     fun saveWordFavoriteOnly(
@@ -434,7 +572,7 @@ class FirebaseRepository {
         db.collection("users")
             .document(uid)
             .collection("word")
-            .document("history")
+            .document("studyHistory")
             .set(
                 mapOf(
                     "history" to json
@@ -449,7 +587,7 @@ class FirebaseRepository {
             db.collection("users")
                 .document(uid)
                 .collection("word")
-                .document("history")
+                .document("studyHistory")
                 .get()
                 .await()
 
@@ -459,34 +597,111 @@ class FirebaseRepository {
         return history.toString()
     }
 
-    fun saveChunkProgress(
-        progress: String
+    suspend fun saveChunkLearningState(
+        progress: String,
+        deckOrder: String,
+        deckIndex: Int
     ) {
-        val uid = getUid() ?: return
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("progress")
-            .set(
+        val chunkCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("chunk")
+
+        db.runBatch { batch ->
+
+            batch.set(
+                chunkCollection.document("progress"),
                 mapOf(
                     "progress" to progress
                 )
             )
+
+            batch.set(
+                chunkCollection.document("deckOrder"),
+                mapOf(
+                    "deckOrder" to deckOrder
+                )
+            )
+
+            batch.set(
+                chunkCollection.document("deckIndex"),
+                mapOf(
+                    "deckIndex" to deckIndex
+                )
+            )
+
+        }.await()
     }
 
-    suspend fun loadChunkProgress(): String {
-        val uid = getUid() ?: return "[]"
+    suspend fun loadChunkLearningState(): ChunkLeaningState {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
 
-        val snapshot =
+        val chunkCollection =
             db.collection("users")
                 .document(uid)
                 .collection("chunk")
+
+        val progressSnapshot =
+            chunkCollection
                 .document("progress")
                 .get()
                 .await()
 
-        return snapshot.getString("progress") ?: "[]"
+        val deckOrderSnapshot =
+            chunkCollection
+                .document("deckOrder")
+                .get()
+                .await()
+
+        val deckIndexSnapshot =
+            chunkCollection
+                .document("deckIndex")
+                .get()
+                .await()
+
+        return ChunkLeaningState(
+            progress =
+                if (progressSnapshot.exists()) {
+                    progressSnapshot
+                        .getString("progress")
+                        ?: "[]"
+                } else {
+                    "[]"
+                },
+
+            deckOrder =
+                if (deckOrderSnapshot.exists()) {
+                    deckOrderSnapshot
+                        .getString("deckOrder")
+                        ?: "[]"
+                } else {
+                    "[]"
+                },
+
+            deckIndex =
+                if (deckIndexSnapshot.exists()) {
+                    deckIndexSnapshot
+                        .getLong("deckIndex")
+                        ?.toInt()
+                        ?: 0
+                } else {
+                    0
+                },
+
+            filterCategory = loadChunkFilterCategory(),
+
+            filterDifficulty = loadChunkFilterDifficulty(),
+
+            weakMode = loadChunkWeakMode()
+        )
     }
 
     fun saveChunkDeckIndex(
@@ -505,21 +720,6 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadChunkDeckIndex(): Int {
-        val uid = getUid() ?: return 0
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("chunk")
-                .document("deckIndex")
-                .get()
-                .await()
-
-        val rate = snapshot.getDouble("deckIndex") ?: 0
-        return rate.toInt()
-    }
-
     fun saveChunkDeckOrder(
         deckOrder: String
     ) {
@@ -534,20 +734,6 @@ class FirebaseRepository {
                     "deckOrder" to deckOrder
                 )
             )
-    }
-
-    suspend fun loadChunkDeckOrder(): String {
-        val uid = getUid() ?: return ""
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("chunk")
-                .document("deckOrder")
-                .get()
-                .await()
-
-        return snapshot.getString("deckOrder") ?: ""
     }
 
     fun saveChunkFilterCategory(
@@ -646,6 +832,12 @@ class FirebaseRepository {
         return snapshot.getBoolean("weakMode") ?: false
     }
 
+    suspend fun loadGrammarLearningState(): GrammarLeaningState {
+        return GrammarLeaningState(
+            theme = loadGrammarTheme(),
+        )
+    }
+
     fun saveGrammarTheme(
         theme: String
     ) {
@@ -663,7 +855,7 @@ class FirebaseRepository {
     }
 
     suspend fun loadGrammarTheme(): String {
-        val uid = getUid() ?: return ""
+        val uid = getUid() ?: return "基本形"
 
         val snapshot =
             db.collection("users")
@@ -673,7 +865,7 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-        return snapshot.getString("theme") ?: ""
+        return snapshot.getString("theme") ?: "基本形"
     }
 
     fun saveGrammarSpeechRate(
@@ -707,6 +899,14 @@ class FirebaseRepository {
         return rate.toFloat()
     }
 
+    suspend fun loadConversationLearningState(): ConversationLeaningState {
+        return ConversationLeaningState(
+            theme = loadConversationTheme(),
+
+            part = loadConversationPart(),
+        )
+    }
+
     fun saveConversationTheme(
         theme: String
     ) {
@@ -724,7 +924,7 @@ class FirebaseRepository {
     }
 
     suspend fun loadConversationTheme(): String {
-        val uid = getUid() ?: return ""
+        val uid = getUid() ?: return "一般"
 
         val snapshot =
             db.collection("users")
@@ -734,7 +934,7 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-        return snapshot.getString("theme") ?: ""
+        return snapshot.getString("theme") ?: "一般"
     }
 
     fun saveConversationPart(
@@ -754,7 +954,7 @@ class FirebaseRepository {
     }
 
     suspend fun loadConversationPart(): String {
-        val uid = getUid() ?: return "全体"
+        val uid = getUid() ?: return "全部"
 
         val snapshot =
             db.collection("users")
@@ -764,7 +964,7 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-        return snapshot.getString("part") ?: ""
+        return snapshot.getString("part") ?: "全部"
     }
 
     fun saveConversationSpeechRate(
@@ -813,6 +1013,7 @@ class FirebaseRepository {
 
     suspend fun loadResetAT(): Long {
         val uid = getUid() ?: return 0L
+
         val snapshot =
             db.collection("users")
                 .document(uid)
@@ -821,124 +1022,119 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-        return snapshot.getLong("reset") ?: 0L
+        return snapshot.getLong("resetAT")
+            ?: 0L
     }
 
-    fun resetWord() {
+    suspend fun resetWord() {
         val uid = getUid() ?: return
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("progress")
-            .delete()
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("word")
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("deckIndex")
-            .delete()
+        db.runBatch { batch ->
+            batch.delete(
+                wordCollection.document("progress")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("deckOrder")
-            .delete()
+            batch.delete(
+                wordCollection.document("deckIndex")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("history")
-            .delete()
+            batch.delete(
+                wordCollection.document("deckOrder")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("favorites")
-            .delete()
+            batch.delete(
+                wordCollection.document("studyHistory")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("csvFileList")
-            .delete()
+            batch.delete(
+                wordCollection.document("favorites")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("weakMode")
-            .delete()
+            batch.delete(
+                wordCollection.document("favoriteOnly")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("filterPos")
-            .delete()
+            batch.delete(
+                wordCollection.document("weakMode")
+            )
+
+            batch.delete(
+                wordCollection.document("filterPos")
+            )
+        }.await()
     }
 
-    fun resetChunk() {
+    suspend fun resetChunk() {
         val uid = getUid() ?: return
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("progress")
-            .delete()
+        val chunkCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("chunk")
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("deckIndex")
-            .delete()
+        db.runBatch { batch ->
+            batch.delete(
+                chunkCollection.document("progress")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("deckOrder")
-            .delete()
+            batch.delete(
+                chunkCollection.document("deckIndex")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("weakMode")
-            .delete()
+            batch.delete(
+                chunkCollection.document("deckOrder")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("filterCategory")
-            .delete()
+            batch.delete(
+                chunkCollection.document("weakMode")
+            )
 
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("filterDifficulty")
-            .delete()
+            batch.delete(
+                chunkCollection.document("filterCategory")
+            )
+
+            batch.delete(
+                chunkCollection.document("filterDifficulty")
+            )
+        }.await()
     }
 
-    fun resetGrammar() {
+    suspend fun resetGrammar() {
         val uid = getUid() ?: return
 
-        db.collection("users")
-            .document(uid)
-            .collection("grammar")
-            .document("theme")
-            .delete()
+        val grammarCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("grammar")
+
+        db.runBatch { batch ->
+            batch.delete(
+                grammarCollection.document("theme")
+            )
+        }.await()
     }
 
-    fun resetConversation() {
+    suspend fun resetConversation() {
         val uid = getUid() ?: return
 
-        db.collection("users")
-            .document(uid)
-            .collection("conversation")
-            .document("theme")
-            .delete()
+        val conversationCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("conversation")
 
-        db.collection("users")
-            .document(uid)
-            .collection("conversation")
-            .document("part")
-            .delete()
+        db.runBatch { batch ->
+            batch.delete(
+                conversationCollection.document("theme")
+            )
+
+            batch.delete(
+                conversationCollection.document("part")
+            )
+        }.await()
     }
 }

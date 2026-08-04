@@ -24,9 +24,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +56,14 @@ fun SettingsDialog(
     darkMode: Boolean,
     soundVolume: Float,
     uid: String?,
+    isOnline: Boolean,
+    isSyncing: Boolean,
+    syncMessage: String?,
     onDarkModeChanged: (Boolean) -> Unit,
     onSoundVolumeChanged: (Float) -> Unit,
     onDataInit: () -> Unit,
+    onDownloadFromFirebase: () -> Unit,
+    onLogin: () -> Unit,
     onLogout: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -63,6 +71,11 @@ fun SettingsDialog(
     val context = LocalContext.current
 
     var showResetDialog by remember {mutableStateOf(false)}
+
+    var showUid by remember {mutableStateOf(false)}
+
+    val isFirebaseAvailable =
+        uid != null && isOnline
 
     AlertDialog(
 
@@ -76,22 +89,54 @@ fun SettingsDialog(
 
             Column {
 
-                var showUid by remember {
-                    mutableStateOf(false)
+                Text("Firebase")
+
+                Spacer(Modifier.width(16.dp))
+
+                Button(
+                    onClick = onDownloadFromFirebase,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = isFirebaseAvailable && !isSyncing
+                ) {
+                    if (isSyncing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+
+                        Spacer(
+                            modifier = Modifier.width(8.dp)
+                        )
+
+                        Text("同期中")
+                    } else {
+                        Text("他端末の続きから再開")
+                    }
                 }
-
-                Row {
-                    Text("FIrebase")
-
-                    Spacer(Modifier.width(16.dp))
-
-                    Text(
-                        if (uid != null) {
-                            "✅ 接続中"
-                        } else {
-                            "❌ 未接続"
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 20.dp)
+                ) {
+                    when {
+                        !isOnline -> {
+                            Text(
+                                text = "ネットワークに接続してください"
+                            )
                         }
-                    )
+
+                        uid == null -> {
+                            Text(
+                                text = "他端末との同期にはログインが必要です"
+                            )
+                        }
+
+                        syncMessage != null -> {
+                            Text(
+                                text = syncMessage
+                            )
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -234,8 +279,7 @@ fun SettingsDialog(
                             Color(0xFFD32F2F),
                         contentColor = Color.White
                     ),
-                    modifier =
-                    Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("学習データ初期化")
                 }
@@ -243,11 +287,22 @@ fun SettingsDialog(
                 Spacer(Modifier.height(16.dp))
 
                 Button(
-                    onClick = onLogout,
-                    modifier =
-                    Modifier.fillMaxWidth()
+                    onClick = {
+                        if (isFirebaseAvailable) {
+                            onLogout()
+                        } else {
+                            onLogin()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("ログアウト")
+                    Text(
+                        if (isFirebaseAvailable) {
+                            "ログアウト"
+                        } else {
+                            "ログイン"
+                        }
+                    )
                 }
             }
 

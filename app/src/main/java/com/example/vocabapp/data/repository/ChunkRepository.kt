@@ -2,6 +2,7 @@ package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.vocabapp.data.model.ChunkLeaningState
 import com.example.vocabapp.data.model.ChunkProgress
 import com.example.vocabapp.data.model.DailyStat
 import com.example.vocabapp.utils.PrefKeys
@@ -14,79 +15,56 @@ class ChunkRepository(
 
 ) {
 
-    suspend fun restoreFromFirebase() {
+    suspend fun uploadLearningState(): Result<Unit> {
+        return runCatching {
 
-        val progressList = firebaseRepository.loadChunkProgress()
-        prefs.edit()
-            .putString(PrefKeys.CHUNK_PROGRESS, progressList)
-            .apply()
+            firebaseRepository.saveChunkLearningState(
+                progress = loadProgress() ?: "[]",
 
-        val dckIndex = firebaseRepository.loadChunkDeckIndex()
-        if (dckIndex != 0) {
-            prefs.edit()
-                .putInt(PrefKeys.CHUNK_DECK_INDEX, dckIndex)
-                .apply()
+                deckOrder = loadDeckOrder() ?: "[]",
+
+                deckIndex = loadDeckIndex(),
+            )
+        }.onFailure { error ->
+
+            Log.w(
+                "ChunkRepository",
+                "学習状態のアップロードに失敗しました",
+                error
+            )
         }
 
-        val deckOrder = firebaseRepository.loadChunkDeckOrder()
-        if (deckOrder.isNotEmpty()) {
-            prefs.edit()
-                .putString(PrefKeys.CHUNK_DECK_ORDER, deckOrder)
-                .apply()
-        }
-
-        val filterCategory = firebaseRepository.loadChunkFilterCategory()
-        if (filterCategory.isNotEmpty()) {
-            prefs.edit()
-                .putStringSet(PrefKeys.CHUNK_FILTER_CATEGORY, filterCategory)
-                .apply()
-        }
-
-        val filterDifficulty = firebaseRepository.loadChunkFilterDifficulty()
-        if (filterDifficulty.isNotEmpty()) {
-            prefs.edit()
-                .putStringSet(PrefKeys.CHUNK_FILTER_DIFFICULTY, filterDifficulty)
-                .apply()
-        }
-
-        val weakMode = firebaseRepository.loadChunkWeakMode()
-        prefs.edit()
-            .putBoolean(PrefKeys.CHUNK_WEAK_MODE, weakMode)
-            .apply()
     }
 
-    fun syncToFirebase(): Boolean {
-        try {
-            firebaseRepository.saveChunkProgress(loadProgress() ?: "[]")
-            firebaseRepository.saveChunkDeckOrder(loadDeckOrder() ?: "[]")
-
-            return true
-        } catch (e: Exception) {
-            Log.e(
-                "ChunkRepository",
-                "Firebase sync failed",
-                e
+    fun applyDownloadedLearningState(
+        state: ChunkLeaningState
+    ) {
+        prefs.edit()
+            .putString(
+                PrefKeys.CHUNK_PROGRESS,
+                state.progress
             )
-
-            return false
-        }
-    }
-
-    fun syncDeckToFirebase(): Boolean {
-        try {
-            firebaseRepository.saveChunkDeckOrder(loadDeckOrder() ?: "[]")
-            firebaseRepository.saveChunkDeckIndex(loadDeckIndex())
-
-            return true
-        } catch (e: Exception) {
-            Log.e(
-                "ChunkRepository",
-                "Firebase sync failed",
-                e
+            .putString(
+                PrefKeys.CHUNK_DECK_ORDER,
+                state.deckOrder
             )
-
-            return false
-        }
+            .putInt(
+                PrefKeys.CHUNK_DECK_INDEX,
+                state.deckIndex
+            )
+            .putStringSet(
+                PrefKeys.CHUNK_FILTER_CATEGORY,
+                state.filterCategory
+            )
+            .putStringSet(
+                PrefKeys.CHUNK_FILTER_DIFFICULTY,
+                state.filterDifficulty
+            )
+            .putBoolean(
+                PrefKeys.CHUNK_WEAK_MODE,
+                state.weakMode
+            )
+            .apply()
     }
 
     fun loadProgress(): String? {
@@ -117,7 +95,7 @@ class ChunkRepository(
             .putInt(PrefKeys.CHUNK_DECK_INDEX, index)
             .apply()
 
-        firebaseRepository.saveChunkDeckIndex(index)
+//        firebaseRepository.saveChunkDeckIndex(index)
     }
 
     fun loadDeckOrder(): String? {

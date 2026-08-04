@@ -23,17 +23,15 @@ import com.example.vocabapp.util.saveChunkProgress
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
 import android.util.Log
+import kotlinx.coroutines.Job
 
 class ChunkViewModel : ViewModel() {
-init {
-    Log.d("CHUNK", "ViewModel created")
-}
     private lateinit var repository: ChunkRepository
 
     fun initialize(
         prefs: SharedPreferences,
     ) {
-        Log.d("CHUNK", "Initialize")
+
         if (!::repository.isInitialized) {
             repository = ChunkRepository(
                 prefs,
@@ -50,65 +48,145 @@ init {
     val uiState =
         _uiState.asStateFlow()
 
+    private var uploadJob: Job? = null
+
+    private var learningRevision: Long = 0L
+
     fun load() {
+        loadLocalData()
+    }
 
-        viewModelScope.launch {
-            repository.restoreFromFirebase()
+    private fun loadLocalData() {
 
-            val progressMap = loadChunkProgress(repository)
+        val progressMap = loadChunkProgress(repository)
 
-            val loadedChuncks =
-                baseChunks.map { chunk ->
-                    progressMap[chunk.deckKey()]
-                        ?.let { progress ->
-                            chunk.copy(
-                                level = progress.level,
-                                streak = progress.streak,
-                                recentResults = progress.recentResults
-                            )
-                        }
-                        ?: chunk
-                }
-
-            _uiState.update {
-
-                it.copy(
-                    selectedDifficulty = repository.loadFilterDifficulty(),
-                    selectedCategory = repository.loadFilterCategory(),
-                    weakMode = repository.loadWeakMode(),
-                    deckIndex = repository.loadDeckIndex(),
-                    chunks = loadedChuncks
-                )
+        val loadedChuncks =
+            baseChunks.map { chunk ->
+                progressMap[chunk.deckKey()]
+                    ?.let { progress ->
+                        chunk.copy(
+                            level = progress.level,
+                            streak = progress.streak,
+                            recentResults = progress.recentResults
+                        )
+                    }
+                    ?: chunk
             }
 
-            val savedDeckJson = repository.loadDeckOrder()
+        _uiState.update {
 
-            if (savedDeckJson != null) {
-                val savedIds: List<String> =
+            it.copy(
+                selectedDifficulty = repository.loadFilterDifficulty(),
+                selectedCategory = repository.loadFilterCategory(),
+                weakMode = repository.loadWeakMode(),
+                deckIndex = repository.loadDeckIndex(),
+                chunks = loadedChuncks
+            )
+        }
+
+        val savedDeckJson = repository.loadDeckOrder()
+
+        if (savedDeckJson != null) {
+            val savedIds: List<String> =
+                try {
                     Gson().fromJson(savedDeckJson, object : TypeToken<List<String>>() {}.type)
+                } catch (e: Exception) {
+                    Log.e(
+                        "CHUNK_RELOAD",
+                        "deckOrderの解析に失敗",
+                        e
+                    )
+                    emptyList()
+                }
 
-                val restored =
-                    savedIds.mapNotNull { id ->
-                        loadedChuncks.find { it.deckKey() == id }
-                    }
+            val restored =
+                savedIds.mapNotNull { id ->
+                    loadedChuncks.find { it.deckKey() == id }
+                }
 
-                if (restored.isNotEmpty() &&
-                    restored.size == getFilteredChunks().size) {
+            if (restored.isNotEmpty() &&
+                restored.size == savedIds.size) {
+                val savedIndex =
+                    repository.loadDeckIndex()
+                        .coerceIn(0, restored.lastIndex)
+
+                _uiState.update {
+                    it.copy(
+                        deck = restored,
+                        deckIndex = savedIndex,
+                        dirty = false
+                    )
+                }
+
+                return
+            }
+        }
+
+        rebuildDeck(markDirty = false)
+    }
+
+    fun uploadLearningStateIfDirty() {
+
+        if (!::repository.isInitialized) {
+            return
+        }
+
+        if (!uiState.value.dirty) {
+            return
+        }
+
+        if (uploadJob?.isActive == true) {
+            return
+        }
+
+        val revisionAtUpload =
+            learningRevision
+
+        uploadJob =
+            viewModelScope.launch {
+
+                val result =
+                    repository.uploadLearningState()
+
+                result.onSuccess {
+                    /*
+                     * アップロード中に新しい回答がなければ、
+                     * dirtyを解除する。
+                     */
+                    if (
+                        learningRevision ==
+                        revisionAtUpload
+                    ) {
                         _uiState.update {
                             it.copy(
-                                deck = restored,
-                                deckIndex = repository.loadDeckIndex()
+                                dirty = false
                             )
                         }
-                        setDeck(restored)
-                        return@launch
                     }
-                }
-                rebuildDeck()
-        }
-}
 
-    fun rebuildDeck() {
+                    Log.d(
+                        "WORD_SYNC",
+                        "学習状態をアップロードしました"
+                    )
+                }
+
+                result.onFailure { error ->
+                    /*
+                     * 失敗した場合はdirtyを残す。
+                     * 次にタブを離れるときなどに再試行できる。
+                     */
+                    Log.w(
+                        "WORD_SYNC",
+                        "学習状態をアップロードできませんでした",
+                        error
+                    )
+                }
+            }
+    }
+
+    fun rebuildDeck(
+        markDirty: Boolean = true
+    ) {
 
         val chunks = getFilteredChunks()
 
@@ -116,6 +194,7 @@ init {
 
             it.copy(
                 deck = generateChunkDeck(chunks),
+                dirty = markDirty
             )
         }
 
@@ -148,8 +227,6 @@ init {
         }
 
         rebuildDeck()
-
-        repository.syncDeckToFirebase()
     }
 
     fun setWeakMode(
@@ -165,8 +242,6 @@ init {
         }
 
         rebuildDeck()
-
-        repository.syncDeckToFirebase()
     }
 
     fun setStudyMode(
@@ -263,36 +338,33 @@ init {
     }
 
     private fun nextCard() {
-        val next =
 
-            if (
-                uiState.value.deckIndex <
-                uiState.value.deck.lastIndex
-            )
-                uiState.value.deckIndex + 1
-            else
+        val currentIndex = uiState.value.deckIndex
+
+        val lastIndex = uiState.value.deck.lastIndex
+
+        if (lastIndex < 0) {
+            return
+        }
+
+        /*
+         * 回答したカードが最後のカードなら、
+         * これでデッキを1周したことになる。
+         */
+        val completedRound =
+            currentIndex == lastIndex
+
+        val nextIndex =
+            if (completedRound) {
                 0
-
-        setDeckIndex(next)
-
-        val completeDeck =
-            uiState.value.deckIndex == uiState.value.deck.lastIndex
-
-        if (completeDeck && uiState.value.dirty) {
-            val result = repository.syncToFirebase()
-
-            if (!result) {
-                Log.d(
-                    "SYNC",
-                    "retry later"
-                )
+            } else {
+                currentIndex + 1
             }
 
-            _uiState.update {
-                it.copy(
-                    dirty = false
-                )
-            }
+        setDeckIndex(nextIndex)
+
+        if (completedRound) {
+            uploadLearningStateIfDirty()
         }
     }
 

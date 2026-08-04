@@ -133,258 +133,269 @@ fun WordScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        if (currentWord == null) {
+        when {
 
-            Spacer(Modifier.height(20.dp))
-
-            Text(
-                "❗ 条件に一致する単語がありません",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                "フィルターを変更してみてください",
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-
-            // ? 進捗計算
-            val progress =
-                if (uiState.deck.size == 0) 0f
-                else (uiState.deckIndex + 1).toFloat() / uiState.deck.size.toFloat()
-
-            // ? アニメーション
-            val animatedProgress by animateFloatAsState(
-                targetValue = progress,
-                label = ""
-            )
-
-            // ? 色変化
-            val progressColor = when {
-                progress < 0.3f -> Color.Red
-                progress < 0.7f -> Color(0xFFFFC107)
-                else -> Color(0xFF4CAF50)
+            !uiState.isInitialized -> {
+                // 何も表示しない、または小さいProgressIndicator
             }
 
-            // ? プログレスバー
-            LinearProgressIndicator(
-                progress = animatedProgress,
-                color = progressColor,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-            )
+            currentWord == null -> {
+                Spacer(Modifier.height(20.dp))
 
-            Spacer(Modifier.height(4.dp))
+                Text(
+                    "❗ 条件に一致する単語がありません",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                Spacer(Modifier.height(16.dp))
 
-                // ? 左エリア（中央寄せ）
-                Box(
+                Text(
+                    "フィルターを変更してみてください",
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            else -> {
+
+                // ? 進捗計算
+                val progress =
+                    if (uiState.deck.size == 0) 0f
+                    else (uiState.deckIndex + 1).toFloat() / uiState.deck.size.toFloat()
+
+                // ? アニメーション
+                val animatedProgress by animateFloatAsState(
+                    targetValue = progress,
+                    label = ""
+                )
+
+                // ? 色変化
+                val progressColor = when {
+                    progress < 0.3f -> Color.Red
+                    progress < 0.7f -> Color(0xFFFFC107)
+                    else -> Color(0xFF4CAF50)
+                }
+
+                // ? プログレスバー
+                LinearProgressIndicator(
+                    progress = animatedProgress,
+                    color = progressColor,
                     modifier = Modifier
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .height(8.dp)
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // ? ? 1周完了メッセージ
-                    if (uiState.deckIndex == 0 && uiState.deck.size > 0 && completedLap) {
+
+                    // ? 左エリア（中央寄せ）
+                    Box(
+                        modifier = Modifier
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // ? ? 1周完了メッセージ
+                        if (uiState.deckIndex == 0 && uiState.deck.size > 0 && completedLap) {
+                            Text(
+                                text = "? 1周完了！",
+                                color = Color(0xFF4CAF50),
+                                fontSize = 14.sp
+                            )
+                        } else {
+                            Spacer(Modifier.height(20.dp))
+                        }
+                    }
+
+                    // ? 右エリア（縦＋右寄せ）
+                    Column(
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        // ? 数字表示
+                        Text("${uiState.deckIndex + 1} / ${uiState.deck.size}", fontSize = 12.sp)
+
+                        // ? 残り表示
                         Text(
-                            text = "? 1周完了！",
-                            color = Color(0xFF4CAF50),
-                            fontSize = 14.sp
+                            "残り: ${uiState.deck.size - (uiState.deckIndex + 1)}",
+                            fontSize = 12.sp
                         )
-                    } else {
-                        Spacer(Modifier.height(20.dp))
                     }
                 }
 
-                // ? 右エリア（縦＋右寄せ）
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    // ? 数字表示
-                    Text("${uiState.deckIndex + 1} / ${uiState.deck.size}", fontSize = 12.sp)
+                if (uiState.studyMode == "card") {
 
-                    // ? 残り表示
-                    Text("残り: ${uiState.deck.size - (uiState.deckIndex + 1)}", fontSize = 12.sp)
-                }
-            }
+                    // =====================
+                    // ? カードモード
+                    // =====================
 
-            if (uiState.studyMode == "card") {
+                    currentWord.let { word ->
 
-                // =====================
-                // ? カードモード
-                // =====================
+                        // ? スケール状態（?用）
+                        var starScale by remember { mutableStateOf(1f) }
 
-                currentWord.let { word ->
+                        // ? 元に戻す
+                        LaunchedEffect(starScale) {
+                            if (starScale > 1f) {
+                                delay(100)
+                                starScale = 1f
+                            }
+                        }
 
-                    // ? スケール状態（?用）
-                    var starScale by remember { mutableStateOf(1f) }
+                        Spacer(Modifier.height(12.dp))
 
-                    // ? 元に戻す
-                    LaunchedEffect(starScale) {
-                        if (starScale > 1f) {
-                            delay(100)
-                            starScale = 1f
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(16.dp)
+                        ) {
+
+                            // ? スワイプカード
+                            SwipeCard(
+                                onRight = {
+                                    if (soundEnabled) {
+                                        playSound(context, R.raw.correct, soundVolume)
+                                    }
+
+                                    wordViewModel.answerWord(currentWord, true)
+
+                                    showAnswer = false
+                                    completedLap = true
+                                },
+                                onLeft = {
+                                    if (soundEnabled) {
+                                        playSound(context, R.raw.wrong, soundVolume)
+                                    }
+
+                                    wordViewModel.answerWord(currentWord, false)
+
+                                    showAnswer = false
+                                    completedLap = true
+                                }
+                            ) {
+
+                                // ? 中央の単語
+                                Column(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                        // ★ 品詞（色付き・小さく）
+                                        Text(
+                                            text = currentWord.partOfSpeech,
+                                            color = getPosColor(currentWord.partOfSpeech),
+                                            fontSize = 20.sp
+                                        )
+
+                                        Spacer(Modifier.width(8.dp))
+
+                                        // ★ ベトナム語（大きく）
+                                        Text(
+                                            text = currentWord.vietnamese,
+                                            fontSize = 40.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+
+                                // ? お気に入り
+                                Text(
+                                    text = if (uiState.favorites.contains(currentWord.deckKey())) "★" else "☆",
+                                    fontSize = 28.sp,
+                                    color = if (uiState.favorites.contains(currentWord.deckKey()))
+                                        Color(0xFFFFC107) else Color.Gray,
+                                    modifier = Modifier
+                                        .align(Alignment.TopStart)
+                                        .padding(start = 16.dp)
+                                        .clickable {
+
+                                            wordViewModel.toggleFavorites(currentWord)
+                                        }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    // ? 下テキスト
+                    Text(
+                        "← 未習得　　覚えた →",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // ? 発音
+                        Button(
+                            onClick = {
+                                tts?.speak(
+                                    currentWord.vietnamese,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    null
+                                )
+                            },
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(50.dp)
+                        ) {
+                            Text("🔊 発音", fontSize = 18.sp)
+                        }
+
+                        // ? 表示切替
+                        Button(
+                            onClick = { showAnswer = !showAnswer },
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(50.dp)
+                        ) {
+                            Text(
+                                if (showAnswer) "隠す" else "日本語",
+                                fontSize = 18.sp
+                            )
                         }
                     }
 
                     Spacer(Modifier.height(12.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(16.dp)
-                    ) {
+                    // ? 日本語表示
+                    if (showAnswer) {
+                        Text(currentWord.japanese, fontSize = 28.sp)
+                    }
+                } else {
 
-                        // ? スワイプカード
-                        SwipeCard(
-                            onRight = {
-                                if (soundEnabled) {
-                                    playSound(context, R.raw.correct, soundVolume)
-                                }
+                    // =====================
+                    // ? クイズモード
+                    // =====================
 
-                                wordViewModel.answerWord(currentWord, true)
+                    GenericQuizUI(
+                        soundEnabled = soundEnabled,
+                        soundVolume = soundVolume,
+                        question = currentWord.vietnamese,
+                        correctAnswer = currentWord.japanese,
+                        allOptions = targetWords.map { it.japanese },
 
-                                showAnswer = false
-                                completedLap = true
-                            },
-                            onLeft = {
-                                if (soundEnabled) {
-                                    playSound(context, R.raw.wrong, soundVolume)
-                                }
-
-                                wordViewModel.answerWord(currentWord, false)
-
-                                showAnswer = false
-                                completedLap = true
-                            }
-                        ) {
-
-                            // ? 中央の単語
-                            Column(
-                                modifier = Modifier.align(Alignment.Center),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-
-                                    // ★ 品詞（色付き・小さく）
-                                    Text(
-                                        text = currentWord.partOfSpeech,
-                                        color = getPosColor(currentWord.partOfSpeech),
-                                        fontSize = 20.sp
-                                    )
-
-                                    Spacer(Modifier.width(8.dp))
-
-                                    // ★ ベトナム語（大きく）
-                                    Text(
-                                        text = currentWord.vietnamese,
-                                        fontSize = 40.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-
-                            // ? お気に入り
-                            Text(
-                                text = if (uiState.favorites.contains(currentWord.deckKey())) "★" else "☆",
-                                fontSize = 28.sp,
-                                color = if (uiState.favorites.contains(currentWord.deckKey()))
-                                    Color(0xFFFFC107) else Color.Gray,
-                                modifier = Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(start = 16.dp)
-                                    .clickable {
-
-                                        wordViewModel.toggleFavorites(currentWord)
-                                    }
-                            )
+                        onAnswer = { correct ->
+                            wordViewModel.answerWord(currentWord, correct)
                         }
-                    }
+                    )
                 }
-
-                Spacer(Modifier.height(4.dp))
-
-                // ? 下テキスト
-                Text(
-                    "← 未習得　　覚えた →",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // ? 発音
-                    Button(
-                        onClick = {
-                            tts?.speak(
-                                currentWord.vietnamese,
-                                TextToSpeech.QUEUE_FLUSH,
-                                null,
-                                null
-                            )
-                        },
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(50.dp)
-                    ) {
-                        Text("🔊 発音", fontSize = 18.sp)
-                    }
-
-                    // ? 表示切替
-                    Button(
-                        onClick = { showAnswer = !showAnswer },
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(50.dp)
-                    ) {
-                        Text(
-                            if (showAnswer) "隠す" else "日本語",
-                            fontSize = 18.sp
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                // ? 日本語表示
-                if (showAnswer) {
-                    Text(currentWord.japanese, fontSize = 28.sp)
-                }
-            } else {
-
-                // =====================
-                // ? クイズモード
-                // =====================
-
-                GenericQuizUI(
-                    soundEnabled = soundEnabled,
-                    soundVolume = soundVolume,
-                    question = currentWord.vietnamese,
-                    correctAnswer = currentWord.japanese,
-                    allOptions = targetWords.map { it.japanese },
-
-                    onAnswer = { correct ->
-                        wordViewModel.answerWord(currentWord, correct)
-                    }
-                )
             }
         }
     }

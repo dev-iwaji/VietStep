@@ -32,7 +32,8 @@ class AuthViewModel : ViewModel() {
                         isLoggedIn = user != null || old.isOffline,
                         uid = user?.uid
                     )
-                }/*                _uiState.value = AuthUiState(
+                }
+/*                _uiState.value = AuthUiState(
                     isLoading = false,
                     isLoggedIn = user != null,
                     uid = user?.uid
@@ -68,6 +69,18 @@ class AuthViewModel : ViewModel() {
             uid = null,
             isOffline = true
         )
+    }
+
+    fun returnToLogin() {
+        logout()
+
+        _uiState.update {
+            it.copy(
+                isLoggedIn = false,
+                isOffline = false,
+                uid = null
+            )
+        }
     }
 
     fun continueOffline() {

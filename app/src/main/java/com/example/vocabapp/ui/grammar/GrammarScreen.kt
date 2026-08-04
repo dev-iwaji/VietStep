@@ -29,25 +29,18 @@ import com.example.vocabapp.data.source.GrammarItem
 import com.example.vocabapp.data.source.grammarList
 import com.example.vocabapp.ui.components.GenericQuizUI
 import com.example.vocabapp.manager.TtsManager
+import com.example.vocabapp.ui.sync.SyncViewModel
 
 @Composable
 fun GrammarScreen(
     soundEnabled: Boolean,
     soundVolume: Float,
-    prefs: SharedPreferences,
-    tts: TextToSpeech?
+    tts: TextToSpeech?,
+    viewModel: GrammarViewModel
 ) {
-
-    val viewModel: GrammarViewModel =
-        viewModel()
 
     val uiState by
     viewModel.uiState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.initialize(prefs)
-        viewModel.load()
-    }
 
     var showSettings by remember {mutableStateOf(false)}
 

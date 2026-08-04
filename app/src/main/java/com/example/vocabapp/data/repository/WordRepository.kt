@@ -12,14 +12,15 @@ import com.google.gson.reflect.TypeToken
 import java.time.LocalDate
 import java.io.File
 import android.util.Log
+import com.example.vocabapp.data.model.WordLearningState
 
 class WordRepository(
     private val prefs: SharedPreferences,
     private val firebaseRepository: FirebaseRepository
 ) {
 
-    suspend fun restoreCsvFiles(
-        context: android.content.Context
+    suspend fun downloadCsvFilesFromFirebase(
+        context: Context
     ) {
         val firebaseFiles = firebaseRepository.loadCsvFiles()
 
@@ -48,103 +49,143 @@ class WordRepository(
         saveCsvFileList(csvFiles)
     }
 
-    suspend fun restoreFromFirebase() {
-        val gson = Gson()
+    suspend fun applyDownloadedLearningState() :Boolean {
 
-        val progressList = firebaseRepository.loadWordProgress()
+        return try {
 
-        prefs.edit()
-            .putString(PrefKeys.WORD_PROGRESS, progressList)
-            .apply()
+            val gson = Gson()
 
-        val deckIndex = firebaseRepository.loadWordDeckIndex()
-        if (deckIndex != 0) {
+            val progressList = firebaseRepository.loadWordProgress()
+
             prefs.edit()
-                .putInt(PrefKeys.WORD_DECK_INDEX, deckIndex)
+                .putString(PrefKeys.WORD_PROGRESS, progressList)
                 .apply()
-        }
 
-        val deckOrder = firebaseRepository.loadWordDeckOrder()
-        if (deckOrder.isNotEmpty()) {
-            prefs.edit()
-                .putString(PrefKeys.WORD_DECK_ORDER, deckOrder)
-                .apply()
-        }
-
-        val filterPos = firebaseRepository.loadWordFilterPos()
-        if (filterPos.isNotEmpty()) {
-            prefs.edit()
-                .putStringSet(PrefKeys.WORD_FILTER_POS, filterPos)
-                .apply()
-        }
-
-        val favorites = firebaseRepository.loadWordFavorites()
-        if (favorites.isNotEmpty()) {
-            prefs.edit()
-                .putStringSet(PrefKeys.WORD_FAVORITES, favorites)
-                .apply()
-        }
-
-        val favoriteOnly = firebaseRepository.loadWordFavoriteOnly()
-        prefs.edit()
-            .putBoolean(PrefKeys.WORD_FAVORITE_ONLY, favoriteOnly)
-            .apply()
-
-        val weakMode = firebaseRepository.loadWordWeakMode()
-        prefs.edit()
-            .putBoolean(PrefKeys.WORD_WEAK_MODE, weakMode)
-            .apply()
-
-        val studyHistory = firebaseRepository.loadWordStudyHistory()
-        val historyList =
-            try {
-                gson.fromJson<MutableList<DailyStat>>(
-                    studyHistory ?: "[]",
-                    object : TypeToken<MutableList<DailyStat>>() {}.type
-                ) ?: mutableListOf()
-            } catch (e: Exception) {
-                mutableListOf()
+            val deckIndex = firebaseRepository.loadWordDeckIndex()
+            if (deckIndex != 0) {
+                prefs.edit()
+                    .putInt(PrefKeys.WORD_DECK_INDEX, deckIndex)
+                    .apply()
             }
-        if (historyList.isNotEmpty()) {
+
+            val deckOrder = firebaseRepository.loadWordDeckOrder()
+            if (deckOrder.isNotEmpty()) {
+                prefs.edit()
+                    .putString(PrefKeys.WORD_DECK_ORDER, deckOrder)
+                    .apply()
+            }
+
+            val filterPos = firebaseRepository.loadWordFilterPos()
+            if (filterPos.isNotEmpty()) {
+                prefs.edit()
+                    .putStringSet(PrefKeys.WORD_FILTER_POS, filterPos)
+                    .apply()
+            }
+
+            val favorites = firebaseRepository.loadWordFavorites()
+            if (favorites.isNotEmpty()) {
+                prefs.edit()
+                    .putStringSet(PrefKeys.WORD_FAVORITES, favorites)
+                    .apply()
+            }
+
+            val favoriteOnly = firebaseRepository.loadWordFavoriteOnly()
             prefs.edit()
-                .putString(PrefKeys.WORD_STUDY_HISTORY, gson.toJson(historyList))
+                .putBoolean(PrefKeys.WORD_FAVORITE_ONLY, favoriteOnly)
                 .apply()
+
+            val weakMode = firebaseRepository.loadWordWeakMode()
+            prefs.edit()
+                .putBoolean(PrefKeys.WORD_WEAK_MODE, weakMode)
+                .apply()
+
+            val studyHistory = firebaseRepository.loadWordStudyHistory()
+            val historyList =
+                try {
+                    gson.fromJson<MutableList<DailyStat>>(
+                        studyHistory ?: "[]",
+                        object : TypeToken<MutableList<DailyStat>>() {}.type
+                    ) ?: mutableListOf()
+                } catch (e: Exception) {
+                    mutableListOf()
+                }
+            if (historyList.isNotEmpty()) {
+                prefs.edit()
+                    .putString(PrefKeys.WORD_STUDY_HISTORY, gson.toJson(historyList))
+                    .apply()
+            }
+
+            true
+
+        } catch (e: Exception) {
+            Log.w(
+                "WordRepository",
+                "Firebase restore failed. Use local data.",
+                e
+            )
+            false
         }
     }
 
-    fun syncToFirebase(): Boolean {
-        try {
-            firebaseRepository.saveWordProgress(loadProgress() ?: "[]")
-            firebaseRepository.saveWordDeckOrder(loadDeckOrder() ?: "[]")
-            firebaseRepository.saveWordStudyHistory(loadStudyHistory() ?: "[]")
+    suspend fun uploadLearningState(): Result<Unit> {
+        return runCatching {
 
-            return true
-        } catch (e: Exception) {
-            Log.e(
-                "WordRepository",
-                "Firebase sync failed",
-                e
+            firebaseRepository.saveWordLearningState(
+                progress = loadProgress() ?: "[]",
+
+                deckOrder = loadDeckOrder() ?: "[]",
+
+                deckIndex = loadDeckIndex(),
+
+                studyHistory = loadStudyHistory() ?: "[]",
             )
+        }.onFailure { error ->
 
-            return false
+            Log.w(
+                "WordRepository",
+                "学習状態のアップロードに失敗しました",
+                error
+            )
         }
     }
 
-    fun syncDeckToFirebase(): Boolean {
-        try {
-            firebaseRepository.saveWordDeckOrder(loadDeckOrder() ?: "[]")
-            firebaseRepository.saveWordDeckIndex(loadDeckIndex())
-
-            return true
-        } catch (e: Exception) {
-            Log.e(
-                "WordRepository",
-                "Firebase sync failed",
-                e
+    fun applyDownloadedLearningState(
+        state: WordLearningState
+    ) {
+        prefs.edit()
+            .putString(
+                PrefKeys.WORD_PROGRESS,
+                state.progress
             )
-
-            return false
-        }
+            .putString(
+                PrefKeys.WORD_DECK_ORDER,
+                state.deckOrder
+            )
+            .putInt(
+                PrefKeys.WORD_DECK_INDEX,
+                state.deckIndex
+            )
+            .putString(
+                PrefKeys.WORD_STUDY_HISTORY,
+                state.studyHistory
+            )
+            .putStringSet(
+                PrefKeys.WORD_FILTER_POS,
+                state.filterPos
+            )
+            .putStringSet(
+                PrefKeys.WORD_FAVORITES,
+                state.favorites
+            )
+            .putBoolean(
+                PrefKeys.WORD_FAVORITE_ONLY,
+                state.favoriteOnly
+            )
+            .putBoolean(
+                PrefKeys.WORD_WEAK_MODE,
+                state.weakMode
+            )
+            .apply()
     }
 
     fun addCsvFile(
@@ -199,7 +240,7 @@ class WordRepository(
             .putInt(PrefKeys.WORD_DECK_INDEX, index)
             .apply()
 
-        firebaseRepository.saveWordDeckIndex(index)
+//        firebaseRepository.saveWordDeckIndex(index)
     }
 
     fun loadDeckOrder(): String? {
@@ -414,5 +455,13 @@ class WordRepository(
                 gson.toJson(list)
             )
             .apply()
+        val savedJson = prefs.getString(
+            PrefKeys.WORD_STUDY_HISTORY,
+            "[]"
+        )
+        Log.d(
+            "WORD_HISTORY",
+            "SharedPreferences保存確認: $savedJson"
+        )
     }
 }

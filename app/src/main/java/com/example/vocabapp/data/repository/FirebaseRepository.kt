@@ -4,13 +4,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.example.vocabapp.data.model.FirebaseCsv
-import com.example.vocabapp.data.model.ChunkLeaningState
+import com.example.vocabapp.data.model.ChunkLearningState
 import com.example.vocabapp.data.model.WordLearningState
+import com.example.vocabapp.data.model.ConversationLearningState
+import com.example.vocabapp.data.model.GrammarLearningState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import android.util.Log
-import com.example.vocabapp.data.model.ConversationLeaningState
-import com.example.vocabapp.data.model.GrammarLeaningState
 
 class FirebaseRepository {
     private val db =
@@ -185,7 +185,31 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-       return WordLearningState(
+        val filterPosSnapshot =
+            wordCollection
+                .document("filterPos")
+                .get()
+                .await()
+
+        val favoritesSnapshot =
+            wordCollection
+                .document("favorites")
+                .get()
+                .await()
+
+        val favoriteOnlySnapshot =
+            wordCollection
+                .document("favoriteOnly")
+                .get()
+                .await()
+
+        val weakModeSnapshot =
+            wordCollection
+                .document("weakMode")
+                .get()
+                .await()
+
+        return WordLearningState(
             progress =
                 if (progressSnapshot.exists()) {
                     progressSnapshot
@@ -215,21 +239,47 @@ class FirebaseRepository {
                 },
 
             studyHistory =
-            if (studyHistorySnapshot.exists()) {
-                studyHistorySnapshot
-                    .getString("studyHistory")
-                    ?: "[]"
+                if (studyHistorySnapshot.exists()) {
+                    studyHistorySnapshot
+                        .getString("studyHistory")
+                        ?: "[]"
                 } else {
                     "[]"
                 },
 
-            filterPos = loadWordFilterPos(),
+            filterPos =
+                if (filterPosSnapshot.exists()) {
+                    filterPosSnapshot
+                        .get("filterPos")
+                            as? List<String> ?: emptyList()
+                } else {
+                    emptyList()
+                }.toSet(),
 
-            favorites = loadWordFavorites(),
+            favorites =
+                if (favoritesSnapshot.exists()) {
+                    favoritesSnapshot
+                        .get("favorites")
+                            as? List<String>  ?: emptySet()
+                } else {
+                    emptyList()
+                }.toSet(),
 
-            favoriteOnly = loadWordFavoriteOnly(),
+            favoriteOnly =
+                if (favoriteOnlySnapshot.exists()) {
+                    favoriteOnlySnapshot
+                        .getBoolean("favoriteOnly") ?: false
+                } else {
+                    false
+                },
 
-            weakMode = loadWordWeakMode()
+            weakMode =
+                if (weakModeSnapshot.exists()) {
+                    weakModeSnapshot
+                        .getBoolean("weakMode") ?: false
+                } else {
+                    false
+                },
         )
     }
 
@@ -314,97 +364,6 @@ class FirebaseRepository {
             .await()
     }
 
-    fun saveWordProgress(
-        progress: String
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("progress")
-            .set(
-                mapOf(
-                    "progress" to progress
-                )
-            )
-    }
-
-    suspend fun loadWordProgress(): String {
-        val uid = getUid() ?: return "[]"
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("progress")
-                .get()
-                .await()
-
-        return snapshot.getString("progress") ?: "[]"
-    }
-
-    fun saveWordDeckIndex(
-        deckIndex: Int
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("deckIndex")
-            .set(
-                mapOf(
-                    "deckIndex" to deckIndex
-                )
-            )
-    }
-
-    suspend fun loadWordDeckIndex(): Int {
-        val uid = getUid() ?: return 0
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("deckIndex")
-                .get()
-                .await()
-
-        val rate = snapshot.getDouble("deckIndex") ?: 0
-        return rate.toInt()
-    }
-
-    fun saveWordDeckOrder(
-        deckOrder: String
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("deckOrder")
-            .set(
-                mapOf(
-                    "deckOrder" to deckOrder
-                )
-            )
-    }
-
-    suspend fun loadWordDeckOrder(): String {
-        val uid = getUid() ?: return ""
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("deckOrder")
-                .get()
-                .await()
-
-        return snapshot.getString("deckOrder") ?: ""
-    }
-
     fun saveWordFilterPos(
         filterPos: Set<String>
     ) {
@@ -419,23 +378,6 @@ class FirebaseRepository {
                     "filterPos" to filterPos.toList()
                 )
             )
-    }
-
-    suspend fun loadWordFilterPos(): Set<String> {
-        val uid = getUid() ?: return emptySet()
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("filterPos")
-                .get()
-                .await()
-
-        val filterPos =
-            snapshot.get("filterPos") as? List<String> ?: emptyList()
-
-        return filterPos.toSet()
     }
 
     fun saveWordCsvFileList(
@@ -454,20 +396,6 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadWordCsvFileList(): String {
-        val uid = getUid() ?: return ""
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("csvFileList")
-                .get()
-                .await()
-
-        return snapshot.getString("csvFileList") ?: ""
-    }
-
     fun saveWordFavorites(
         favorites: Set<String>
     ) {
@@ -482,26 +410,6 @@ class FirebaseRepository {
                     "favorites" to favorites.toList()
                 )
             )
-    }
-
-    suspend fun loadWordFavorites(): Set<String> {
-        val uid = getUid() ?: return emptySet()
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("favorites")
-                .get()
-                .await()
-
-        if (!snapshot.exists()) {
-            return emptySet()
-        }
-
-        return (snapshot.get("favorites") as? List<String>)
-            ?.toSet()
-            ?: emptySet()
     }
 
     fun saveWordFavoriteOnly(
@@ -520,20 +428,6 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadWordFavoriteOnly(): Boolean {
-        val uid = getUid() ?: return false
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("favoriteOnly")
-                .get()
-                .await()
-
-        return snapshot.getBoolean("favoriteOnly") ?: false
-    }
-
     fun saveWordWeakMode(
         enabled: Boolean
     ) {
@@ -548,53 +442,6 @@ class FirebaseRepository {
                     "weakMode" to enabled
                 )
             )
-    }
-
-    suspend fun loadWordWeakMode(): Boolean {
-        val uid = getUid() ?: return false
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("weakMode")
-                .get()
-                .await()
-
-        return snapshot.getBoolean("weakMode") ?: false
-    }
-
-    fun saveWordStudyHistory(
-        json: String
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("word")
-            .document("studyHistory")
-            .set(
-                mapOf(
-                    "history" to json
-                )
-            )
-    }
-
-    suspend fun loadWordStudyHistory(): String? {
-        val uid = getUid() ?: return null
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("word")
-                .document("studyHistory")
-                .get()
-                .await()
-
-        val history =
-            snapshot.get("history") as? String
-
-        return history.toString()
     }
 
     suspend fun saveChunkLearningState(
@@ -638,7 +485,7 @@ class FirebaseRepository {
         }.await()
     }
 
-    suspend fun loadChunkLearningState(): ChunkLeaningState {
+    suspend fun loadChunkLearningState(): ChunkLearningState {
         val uid = getUid()
             ?: throw IllegalStateException(
                 "Firebaseにログインしていません"
@@ -667,7 +514,25 @@ class FirebaseRepository {
                 .get()
                 .await()
 
-        return ChunkLeaningState(
+        val filterDifficultySnapshot =
+            chunkCollection
+                .document("filterDifficulty")
+                .get()
+                .await()
+
+        val filterCategorySnapshot =
+            chunkCollection
+                .document("filterCategory")
+                .get()
+                .await()
+
+        val weakModeSnapshot =
+            chunkCollection
+                .document("weakMode")
+                .get()
+                .await()
+
+        return ChunkLearningState(
             progress =
                 if (progressSnapshot.exists()) {
                     progressSnapshot
@@ -696,44 +561,33 @@ class FirebaseRepository {
                     0
                 },
 
-            filterCategory = loadChunkFilterCategory(),
 
-            filterDifficulty = loadChunkFilterDifficulty(),
+            filterDifficulty =
+                if (filterDifficultySnapshot.exists()) {
+                    filterDifficultySnapshot
+                        .get("filterDifficulty")
+                            as? List<String>  ?: emptySet()
+                } else {
+                    emptyList()
+                }.toSet(),
 
-            weakMode = loadChunkWeakMode()
+            filterCategory =
+                if (filterCategorySnapshot.exists()) {
+                    filterCategorySnapshot
+                        .get("filterCategory")
+                            as? List<String>  ?: emptySet()
+                } else {
+                    emptyList()
+                }.toSet(),
+
+            weakMode =
+                if (weakModeSnapshot.exists()) {
+                    weakModeSnapshot
+                        .getBoolean("weakMode") ?: false
+                } else {
+                    false
+                },
         )
-    }
-
-    fun saveChunkDeckIndex(
-        deckIndex: Int
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("deckIndex")
-            .set(
-                mapOf(
-                    "deckIndex" to deckIndex
-                )
-            )
-    }
-
-    fun saveChunkDeckOrder(
-        deckOrder: String
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("chunk")
-            .document("deckOrder")
-            .set(
-                mapOf(
-                    "deckOrder" to deckOrder
-                )
-            )
     }
 
     fun saveChunkFilterCategory(
@@ -752,23 +606,6 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadChunkFilterCategory(): Set<String> {
-        val uid = getUid() ?: return emptySet()
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("chunk")
-                .document("filterCategory")
-                .get()
-                .await()
-
-        val filterCategory =
-            snapshot.get("filterCategory") as? List<String> ?: emptyList()
-
-        return filterCategory.toSet()
-    }
-
     fun saveChunkFilterDifficulty(
         filterDifficulty: Set<String>
     ) {
@@ -783,23 +620,6 @@ class FirebaseRepository {
                     "filterDifficulty" to filterDifficulty.toList()
                 )
             )
-    }
-
-    suspend fun loadChunkFilterDifficulty(): Set<String> {
-        val uid = getUid() ?: return emptySet()
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("chunk")
-                .document("filterDifficulty")
-                .get()
-                .await()
-
-        val filterDifficulty =
-            snapshot.get("filterDifficulty") as? List<String> ?: emptyList()
-
-        return filterDifficulty.toSet()
     }
 
     fun saveChunkWeakMode(
@@ -818,23 +638,32 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadChunkWeakMode(): Boolean {
-        val uid = getUid() ?: return false
+    suspend fun loadGrammarLearningState(): GrammarLearningState {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
 
-        val snapshot =
+        val grammarCollection =
             db.collection("users")
                 .document(uid)
-                .collection("chunk")
-                .document("weakMode")
+                .collection("grammar")
+
+        val themeSnapshot =
+            grammarCollection
+                .document("theme")
                 .get()
                 .await()
 
-        return snapshot.getBoolean("weakMode") ?: false
-    }
-
-    suspend fun loadGrammarLearningState(): GrammarLeaningState {
-        return GrammarLeaningState(
-            theme = loadGrammarTheme(),
+        return GrammarLearningState(
+            theme =
+                if (themeSnapshot.exists()) {
+                    themeSnapshot
+                        .getString("theme")
+                        ?: "基本形"
+                } else {
+                    "基本形"
+                },
         )
     }
 
@@ -854,56 +683,47 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadGrammarTheme(): String {
-        val uid = getUid() ?: return "基本形"
+    suspend fun loadConversationLearningState(): ConversationLearningState {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
 
-        val snapshot =
+        val conversationCollection =
             db.collection("users")
                 .document(uid)
-                .collection("grammar")
+                .collection("conversation")
+
+        val themeSnapshot =
+            conversationCollection
                 .document("theme")
                 .get()
                 .await()
 
-        return snapshot.getString("theme") ?: "基本形"
-    }
-
-    fun saveGrammarSpeechRate(
-        speechRate: Float
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("grammar")
-            .document("speechRate")
-            .set(
-                mapOf(
-                    "speechRate" to speechRate
-                )
-            )
-    }
-
-    suspend fun loadGrammarSpeechRate(): Float {
-        val uid = getUid() ?: return 0.8f
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("grammar")
-                .document("speechRate")
+        val partSnapshot =
+            conversationCollection
+                .document("part")
                 .get()
                 .await()
 
-        val rate = snapshot.getDouble("speechRate") ?: 0.8f
-        return rate.toFloat()
-    }
+        return ConversationLearningState(
+            theme =
+            if (themeSnapshot.exists()) {
+                themeSnapshot
+                    .getString("theme")
+                    ?: "一般"
+            } else {
+                "一般"
+            },
 
-    suspend fun loadConversationLearningState(): ConversationLeaningState {
-        return ConversationLeaningState(
-            theme = loadConversationTheme(),
-
-            part = loadConversationPart(),
+            part =
+            if (partSnapshot.exists()) {
+                partSnapshot
+                    .getString("part")
+                    ?: "全部"
+            } else {
+                "全部"
+            },
         )
     }
 
@@ -923,20 +743,6 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadConversationTheme(): String {
-        val uid = getUid() ?: return "一般"
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("conversation")
-                .document("theme")
-                .get()
-                .await()
-
-        return snapshot.getString("theme") ?: "一般"
-    }
-
     fun saveConversationPart(
         part: String
     ) {
@@ -953,51 +759,6 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadConversationPart(): String {
-        val uid = getUid() ?: return "全部"
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("conversation")
-                .document("part")
-                .get()
-                .await()
-
-        return snapshot.getString("part") ?: "全部"
-    }
-
-    fun saveConversationSpeechRate(
-        speechRate: Float
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("conversation")
-            .document("speechRate")
-            .set(
-                mapOf(
-                    "speechRate" to speechRate
-                )
-            )
-    }
-
-    suspend fun loadConversationSpeechRate(): Float {
-        val uid = getUid() ?: return 0.8f
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("conversation")
-                .document("speechRate")
-                .get()
-                .await()
-
-        val rate = snapshot.getDouble("speechRate") ?: 0.8f
-        return rate.toFloat()
-    }
-
     fun saveResetAT(time: Long) {
         val uid =getUid() ?: return
         db.collection("users")
@@ -1011,19 +772,31 @@ class FirebaseRepository {
             )
     }
 
-    suspend fun loadResetAT(): Long {
-        val uid = getUid() ?: return 0L
+    suspend fun loadResetAT(): Long? {
+        val uid = getUid() ?: return null
 
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("sync")
-                .document("reset")
-                .get()
-                .await()
+        return try {
+            val snapshot =
+                db.collection("users")
+                    .document(uid)
+                    .collection("sync")
+                    .document("reset")
+                    .get()
+                    .await()
 
-        return snapshot.getLong("resetAT")
-            ?: 0L
+            if (!snapshot.exists()) {
+                null
+            } else {
+                snapshot.getLong("resetAT")
+            }
+        } catch (e: Exception) {
+            Log.w(
+                "RESET_CHECK",
+                "FirebaseのresetATを取得できませんでした",
+                e
+            )
+            null
+        }
     }
 
     suspend fun resetWord() {

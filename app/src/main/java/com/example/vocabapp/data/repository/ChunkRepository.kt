@@ -2,7 +2,7 @@ package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.example.vocabapp.data.model.ChunkLeaningState
+import com.example.vocabapp.data.model.ChunkLearningState
 import com.example.vocabapp.data.model.ChunkProgress
 import com.example.vocabapp.data.model.DailyStat
 import com.example.vocabapp.utils.PrefKeys
@@ -37,7 +37,7 @@ class ChunkRepository(
     }
 
     fun applyDownloadedLearningState(
-        state: ChunkLeaningState
+        state: ChunkLearningState
     ) {
         prefs.edit()
             .putString(
@@ -94,8 +94,6 @@ class ChunkRepository(
         prefs.edit()
             .putInt(PrefKeys.CHUNK_DECK_INDEX, index)
             .apply()
-
-//        firebaseRepository.saveChunkDeckIndex(index)
     }
 
     fun loadDeckOrder(): String? {

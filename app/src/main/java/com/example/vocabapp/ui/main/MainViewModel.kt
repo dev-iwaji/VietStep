@@ -2,18 +2,11 @@ package com.example.vocabapp.ui.main
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.vocabapp.data.model.Word
-import com.example.vocabapp.data.repository.ChunkRepository
-import com.example.vocabapp.data.repository.ConversationRepository
 import com.example.vocabapp.data.repository.FirebaseRepository
-import com.example.vocabapp.data.repository.GrammarRepository
 import com.example.vocabapp.data.repository.MainRepository
-import com.example.vocabapp.data.repository.WordRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
@@ -39,34 +32,42 @@ class MainViewModel : ViewModel() {
         _uiState.asStateFlow()
 
     fun load() {
+        _uiState.update {
+            it.copy(
+                resetAT =
+                repository.loadResetAT(),
 
-        viewModelScope.launch {
-            repository.restoreFromFirebase()
+                soundVolume =
+                repository.loadSoundVolume(),
 
-            val resetAT = repository.loadResetAT()
-            val soundVolume = repository.loadSoundVolume()
-            val darkMode = repository.loadDarkMode()
-
-            _uiState.update {
-                it.copy(
-                    resetAT = resetAT,
-                    soundVolume = soundVolume,
-                    darkMode = darkMode
-                )
-            }
+                darkMode =
+                repository.loadDarkMode()
+            )
         }
+    }
+
+    fun setLocalResetAT(
+        time: Long
+    ) {
+        repository.saveLocalResetAT(time)
 
         _uiState.update {
-
             it.copy(
-                soundVolume = repository.loadSoundVolume(),
-                darkMode = repository.loadDarkMode(),
+                resetAT = time
             )
         }
     }
 
     fun setResetAT(time: Long) {
         repository.saveResetAT(time)
+    }
+
+    fun getLocalResetAT(): Long {
+        check(::repository.isInitialized) {
+            "MainViewModel is not initialized"
+        }
+
+        return repository.loadResetAT()
     }
 
     fun setSoundVolume(volume: Float) {

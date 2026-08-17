@@ -1,5 +1,4 @@
 package com.example.vocabapp.ui.stats
-import android.util.Log
 
 import android.view.View
 
@@ -42,6 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.vocabapp.ui.word.WordViewModel
 import com.example.vocabapp.data.model.DailyStat
 
+import android.util.Log
+
 @Composable
 fun StatsScreen(
     wordViewModel: WordViewModel,
@@ -60,7 +61,7 @@ fun StatsScreen(
     ) {
 
         // -----------------------------
-        // 今日の結果（割合バー）
+        // ✅ 今日の結果（割合バー）
         // -----------------------------
         val todayStat =
             remember(refreshKey) {
@@ -76,7 +77,7 @@ fun StatsScreen(
         Spacer(Modifier.height(16.dp))
 
         // -----------------------------
-        // 週間学習数（BarChart）
+        // ✅ 週間学習数（BarChart）
         // -----------------------------
         Spacer(Modifier.height(24.dp))
         Text("\uD83D\uDCC5 週間学習数", fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -148,7 +149,7 @@ fun StatsScreen(
         }
 
         // -----------------------------
-        // 単語レベル分布（PieChart）
+        // ✅ 単語レベル分布（PieChart）
         // -----------------------------
         Spacer(Modifier.height(24.dp))
         Text("\uD83D\uDCDA 単語レベル分布", fontSize = 20.sp, fontWeight = FontWeight.Bold)

@@ -49,84 +49,6 @@ class WordRepository(
         saveCsvFileList(csvFiles)
     }
 
-    suspend fun applyDownloadedLearningState() :Boolean {
-
-        return try {
-
-            val gson = Gson()
-
-            val progressList = firebaseRepository.loadWordProgress()
-
-            prefs.edit()
-                .putString(PrefKeys.WORD_PROGRESS, progressList)
-                .apply()
-
-            val deckIndex = firebaseRepository.loadWordDeckIndex()
-            if (deckIndex != 0) {
-                prefs.edit()
-                    .putInt(PrefKeys.WORD_DECK_INDEX, deckIndex)
-                    .apply()
-            }
-
-            val deckOrder = firebaseRepository.loadWordDeckOrder()
-            if (deckOrder.isNotEmpty()) {
-                prefs.edit()
-                    .putString(PrefKeys.WORD_DECK_ORDER, deckOrder)
-                    .apply()
-            }
-
-            val filterPos = firebaseRepository.loadWordFilterPos()
-            if (filterPos.isNotEmpty()) {
-                prefs.edit()
-                    .putStringSet(PrefKeys.WORD_FILTER_POS, filterPos)
-                    .apply()
-            }
-
-            val favorites = firebaseRepository.loadWordFavorites()
-            if (favorites.isNotEmpty()) {
-                prefs.edit()
-                    .putStringSet(PrefKeys.WORD_FAVORITES, favorites)
-                    .apply()
-            }
-
-            val favoriteOnly = firebaseRepository.loadWordFavoriteOnly()
-            prefs.edit()
-                .putBoolean(PrefKeys.WORD_FAVORITE_ONLY, favoriteOnly)
-                .apply()
-
-            val weakMode = firebaseRepository.loadWordWeakMode()
-            prefs.edit()
-                .putBoolean(PrefKeys.WORD_WEAK_MODE, weakMode)
-                .apply()
-
-            val studyHistory = firebaseRepository.loadWordStudyHistory()
-            val historyList =
-                try {
-                    gson.fromJson<MutableList<DailyStat>>(
-                        studyHistory ?: "[]",
-                        object : TypeToken<MutableList<DailyStat>>() {}.type
-                    ) ?: mutableListOf()
-                } catch (e: Exception) {
-                    mutableListOf()
-                }
-            if (historyList.isNotEmpty()) {
-                prefs.edit()
-                    .putString(PrefKeys.WORD_STUDY_HISTORY, gson.toJson(historyList))
-                    .apply()
-            }
-
-            true
-
-        } catch (e: Exception) {
-            Log.w(
-                "WordRepository",
-                "Firebase restore failed. Use local data.",
-                e
-            )
-            false
-        }
-    }
-
     suspend fun uploadLearningState(): Result<Unit> {
         return runCatching {
 
@@ -239,8 +161,6 @@ class WordRepository(
         prefs.edit()
             .putInt(PrefKeys.WORD_DECK_INDEX, index)
             .apply()
-
-//        firebaseRepository.saveWordDeckIndex(index)
     }
 
     fun loadDeckOrder(): String? {

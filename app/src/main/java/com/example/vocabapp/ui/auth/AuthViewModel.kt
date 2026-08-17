@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 
 class AuthViewModel : ViewModel() {
 
@@ -17,41 +18,33 @@ class AuthViewModel : ViewModel() {
     private val _uiState =
         MutableStateFlow(AuthUiState())
 
+    private var observeJob: Job? = null
+
     val uiState = _uiState.asStateFlow()
 
     fun init() {
-        load()
         observeAuthState()
     }
 
     private fun observeAuthState() {
-        viewModelScope.launch {
-            firebaseRepository.authState.collect { user ->
-                _uiState.update { old ->
-                    old.copy(
-                        isLoggedIn = user != null || old.isOffline,
-                        uid = user?.uid
-                    )
-                }
-/*                _uiState.value = AuthUiState(
-                    isLoading = false,
-                    isLoggedIn = user != null,
-                    uid = user?.uid
-                )
-*/
-            }
+        if (observeJob?.isActive == true) {
+            return
         }
-    }
 
-    fun load() {
+        observeJob =
+            viewModelScope.launch {
+                firebaseRepository.authState.collect { user ->
 
-        _uiState.value =
-            _uiState.value.copy(
-//            AuthUiState(
-                isLoading = false,
-                isLoggedIn = firebaseRepository.getUid() != null,
-                uid = firebaseRepository.getUid()
-            )
+                    if (user != null) {
+                        _uiState.value =
+                            AuthUiState(
+                                isLoading = false,
+                                isLoggedIn = true,
+                                uid = user.uid
+                            )
+                    }
+                }
+            }
     }
 
     fun logout() {
@@ -59,38 +52,16 @@ class AuthViewModel : ViewModel() {
     }
 
     fun refreshLoginState() {
-        load()
-    }
 
-    fun enterOfflineMode() {
-        _uiState.value = AuthUiState(
-            isLoading = false,
-            isLoggedIn = false,
-            uid = null,
-            isOffline = true
-        )
-    }
+        val uid =
+            firebaseRepository.getUid()
 
-    fun returnToLogin() {
-        logout()
-
-        _uiState.update {
-            it.copy(
-                isLoggedIn = false,
-                isOffline = false,
-                uid = null
+        _uiState.value =
+            AuthUiState(
+                isLoading = false,
+                isLoggedIn =
+                uid != null,
+                uid = uid
             )
-        }
-    }
-
-    fun continueOffline() {
-        _uiState.update {
-            it.copy(
-                isLoggedIn = true,
-                isOffline = true,
-                uid = null
-            )
-        }
     }
 }
-

@@ -3,6 +3,7 @@ package com.example.vocabapp.ui.word
 import com.example.vocabapp.data.model.Word
 import com.example.vocabapp.data.source.baseWords
 import com.example.vocabapp.data.model.CsvFile
+import com.example.vocabapp.data.model.QuizStats
 
 data class WordUiState(
     val dirty: Boolean = false,
@@ -32,5 +33,7 @@ data class WordUiState(
     val syncMessage: String = "",
 
     val isInitialized: Boolean = false,
+
+    val quizStats: QuizStats = QuizStats(),
 )
 

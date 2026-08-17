@@ -21,8 +21,7 @@ import androidx.compose.material3.ButtonDefaults
 
 import com.example.vocabapp.util.playSound
 import com.example.vocabapp.R
-import com.example.vocabapp.data.model.Word
-import kotlin.compareTo
+import com.example.vocabapp.data.model.QuizStats
 
 @Composable
 fun GenericQuizUI(
@@ -31,6 +30,8 @@ fun GenericQuizUI(
     question: String,
     correctAnswer: String,
     allOptions: List<String>,
+    quizStats: QuizStats,
+    onQuizResult: (Boolean) -> Unit,
     onAnswer: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -41,10 +42,10 @@ fun GenericQuizUI(
     var isCorrect by remember { mutableStateOf<Boolean?>(null) }
 
     // ✅ コンボと統計
-    var streak by remember { mutableStateOf(0) }
-    var bestStreak by remember { mutableStateOf(0) }
-    var total by remember { mutableStateOf(0) }
-    var correctCount by remember { mutableStateOf(0) }
+    val streak = quizStats.streak
+    val bestStreak = quizStats.bestStreak
+    val total = quizStats.total
+    val correctCount = quizStats.correctCount
 
     val comboColor = when {
         streak >= 20 -> Color(0xFFFF1744)   // 🔴 超連続（赤）
@@ -144,16 +145,7 @@ fun GenericQuizUI(
                     selected = option
                     isCorrect = correct
 
-                    total++
-                    if (correct) correctCount++
-
-                    // ✅ コンボ
-                    if (correct) {
-                        streak++
-                        if (streak > bestStreak) bestStreak = streak
-                    } else {
-                        streak = 0
-                    }
+                    onQuizResult(correct)
 
                     if (soundEnabled) {
                         if (correct) {

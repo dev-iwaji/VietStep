@@ -90,13 +90,13 @@ fun ChunkSettingDialog(
             }
             .distinct()
 
-    // シャッフルボタンのアニメーション用の状態
+    // ✅ シャッフルボタンのアニメーション用の状態
     var offsetX by remember { mutableStateOf(0.dp) }
     var scale by remember { mutableStateOf(1f) }
     var rotation by remember { mutableStateOf(0f) }
     var shake by remember { mutableStateOf(false) }
 
-    // シャッフルボタンのアニメーション
+    // ✅ シャッフルボタンのアニメーション
     LaunchedEffect(shake) {
         if (shake) {
             // 一瞬だけ拡大

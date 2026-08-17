@@ -3,6 +3,7 @@ package com.example.vocabapp.data.model
 import androidx.compose.ui.graphics.Color
 
 data class Word(
+    val categoryId: String,
     val partOfSpeech: String,
     val vietnamese: String,
     val japanese: String,

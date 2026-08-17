@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.WordRepository
+import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.util.saveWordProgress
 import com.example.vocabapp.util.loadWordProgress
 import kotlinx.coroutines.launch
@@ -421,6 +422,17 @@ class WordViewModel : ViewModel() {
         return repository.getLast7DaysData()
     }
 
+    fun updateQuizStats(
+        correct: Boolean
+    ) {
+        _uiState.update {
+            it.copy(
+                quizStats =
+                it.quizStats.updated(correct)
+            )
+        }
+    }
+
     private fun rebuildWords(
         context: Context
     ): List<Word> {
@@ -490,9 +502,7 @@ class WordViewModel : ViewModel() {
     }
 
     private fun nextCard() {
-
         val currentIndex = uiState.value.deckIndex
-
         val lastIndex = uiState.value.deck.lastIndex
 
         if (lastIndex < 0) {
@@ -519,41 +529,7 @@ class WordViewModel : ViewModel() {
             uploadLearningStateIfDirty()
         }
     }
-/*
-    private fun nextCard() {
-        val next =
 
-            if (
-                uiState.value.deckIndex <
-                uiState.value.deck.lastIndex
-            )
-                uiState.value.deckIndex + 1
-            else
-                0
-
-        setDeckIndex(next)
-
-        val completeDeck =
-            uiState.value.deckIndex == uiState.value.deck.lastIndex
-
-        if (completeDeck && uiState.value.dirty) {
-            val result = repository.syncToFirebase()
-
-            if (!result) {
-                Log.d(
-                    "SYNC",
-                    "retry later"
-                )
-            }
-
-            _uiState.update {
-                it.copy(
-                    dirty = false
-                )
-            }
-        }
-    }
-*/
     private fun saveDeckOrder() {
         val deckIds = uiState.value.deck.map { it.deckKey() }
 

@@ -1,47 +1,17 @@
 package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
-import android.util.Log
-import com.example.vocabapp.data.model.ChunkLeaningState
-import com.example.vocabapp.data.model.GrammarLeaningState
+import com.example.vocabapp.data.model.GrammarLearningState
 import com.example.vocabapp.utils.PrefKeys
-import com.google.gson.Gson
+import android.util.Log
 
 class GrammarRepository(
     private val prefs: SharedPreferences,
     private val firebaseRepository: FirebaseRepository
 ) {
 
-    suspend fun restoreFromFirebase() :Boolean {
-
-        return try {
-
-            val theme = firebaseRepository.loadGrammarTheme()
-            if (theme.isNotEmpty()) {
-                prefs.edit()
-                    .putString(PrefKeys.GRAMMAR_THEME, theme)
-                    .apply()
-            }
-
-            val speechRate = firebaseRepository.loadGrammarSpeechRate()
-            prefs.edit()
-                .putFloat(PrefKeys.GRAMMAR_SPEECH_RATE, speechRate)
-                .apply()
-
-            true
-
-        } catch (e: Exception) {
-            Log.w(
-                "GrammarRepository",
-                "Firebase restore failed. Use local data.",
-                e
-            )
-            false
-        }
-    }
-
     fun applyDownloadedLearningState(
-        state: GrammarLeaningState
+        state: GrammarLearningState
     ) {
         prefs.edit()
             .putString(

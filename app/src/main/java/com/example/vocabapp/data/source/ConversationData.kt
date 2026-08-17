@@ -12,6 +12,378 @@ data class ConversationItem(
 val conversationList = listOf(
 
     //
+    // ✅ Part0 あいさつ
+    //
+    ConversationItem(
+        "Xin chào.",
+        "こんにちは",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "日常"
+    ),
+    ConversationItem(
+        "Chào cậu.",
+        "やあ",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "日常"
+    ),
+    ConversationItem(
+        "Chào anh.",
+        "こんにちは",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "日常"
+    ),
+    ConversationItem(
+        "Chào buổi sáng.",
+        "おはようございます",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "日常"
+    ),
+    ConversationItem(
+        "Chào buổi chiều.",
+        "こんにちは（午後）",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "日常"
+    ),
+    ConversationItem(
+        "Chào buổi tối.",
+        "こんばんは",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "日常"
+    ),
+    ConversationItem(
+        "Anh có khỏe không?",
+        "お元気ですか？",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "確認"
+    ),
+    ConversationItem(
+        "Anh thế nào?",
+        "元気？",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "確認"
+    ),
+    ConversationItem(
+        "Ăn cơm chưa?",
+        "元気にしてる？",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "確認"
+    ),
+    ConversationItem(
+        "Anh sống thế nào?",
+        "最近どう？",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "確認"
+    ),
+    ConversationItem(
+        "Tôi khỏe.",
+        "元気です",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "返事"
+    ),
+    ConversationItem(
+        "Tôi bình thường.",
+        "普通です",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "返事"
+    ),
+    ConversationItem(
+        "Tôi không khỏe lắm.",
+        "あまり元気ではありません",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "返事"
+    ),
+    ConversationItem(
+        "Mình hơi mệt.",
+        "ちょっと疲れています",
+        "一般",
+        "あいさつ",
+        "体調確認",
+        "返事"
+    ),
+    ConversationItem(
+        "Tôi rất vui được gặp bạn.",
+        "会えて嬉しいです",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "初対面"
+    ),
+    ConversationItem(
+        "Lâu rồi không gặp.",
+        "久しぶりです",
+        "一般",
+        "あいさつ",
+        "出会い",
+        "久しぶり"
+    ),
+    ConversationItem(
+        "Cảm ơn.",
+        "ありがとう",
+        "一般",
+        "あいさつ",
+        "お礼・お詫び",
+        "お礼"
+    ),
+    ConversationItem(
+        "Xin lỗi.",
+        "ごめんなさい",
+        "一般",
+        "あいさつ",
+        "お礼・お詫び",
+        "お詫び"
+    ),
+    ConversationItem(
+        "Thông cảm nhé!",
+        "大目に見てほしい",
+        "一般",
+        "あいさつ",
+        "お礼・お詫び",
+        "お詫び"
+    ),
+    ConversationItem(
+        "Không có gì.",
+        "どういたしまして",
+        "一般",
+        "あいさつ",
+        "お礼・お詫び",
+        "お礼・お詫び"
+    ),
+    ConversationItem(
+        "Hẹn gặp lại.",
+        "また会いましょう",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "日常"
+    ),
+    ConversationItem(
+        "Mai gặp nhé.",
+        "また明日",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "日常"
+    ),
+    ConversationItem(
+        "Về nhé.",
+        "じゃあ帰るね",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "日常"
+    ),
+    ConversationItem(
+        "Chúc may mắn.",
+        "ごきげんよう（グッドラック）",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "日常"
+    ),
+    ConversationItem(
+        "Chúc ngủ ngon.",
+        "おやすみなさい",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "夜"
+    ),
+    ConversationItem(
+        "Giữ gìn sức khỏe nhé!",
+        "お元気で!",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "長期"
+    ),
+    ConversationItem(
+        "Đi nhé!",
+        "じゃあ行くね！",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "外出"
+    ),
+    ConversationItem(
+        "Về rồi đây.",
+        "ただいま",
+        "一般",
+        "あいさつ",
+        "戻る",
+        "外出"
+    ),
+    ConversationItem(
+        "Tạm biệt.",
+        "さようなら",
+        "一般",
+        "あいさつ",
+        "別れ",
+        "永遠"
+    ),
+    ConversationItem(
+        "Xin hỏi.",
+        "ちょっと聞いて",
+        "一般",
+        "あいさつ",
+        "お願い",
+        "お願い"
+    ),
+    ConversationItem(
+        "Tất nhiên rồi.",
+        "もちろんですよ",
+        "一般",
+        "あいさつ",
+        "お願い",
+        "了解"
+    ),
+    ConversationItem(
+        "Có chuyện gì vậy?",
+        "何かあった？",
+        "一般",
+        "あいさつ",
+        "気遣い",
+        "確認"
+    ),
+    ConversationItem(
+        "Không sao.",
+        "大丈夫",
+        "一般",
+        "あいさつ",
+        "気遣い",
+        "返事"
+    ),
+    ConversationItem(
+        "Anh có vội gì không?",
+        "お忙しいですか？",
+        "一般",
+        "あいさつ",
+        "気遣い",
+        "確認"
+    ),
+    ConversationItem(
+        "Hãy giữ gìn sức khỏe.",
+        "お体をお大事にね",
+        "一般",
+        "あいさつ",
+        "気遣い",
+        "希望"
+    ),
+    ConversationItem(
+        "Chúc mừng năm mới.",
+        "あけましておめでとう",
+        "一般",
+        "あいさつ",
+        "お祝い",
+        "新年"
+    ),
+    ConversationItem(
+        "Chúc mừng sinh nhật.",
+        "誕生日おめでとう",
+        "一般",
+        "あいさつ",
+        "お祝い",
+        "誕生日"
+    ),
+    ConversationItem(
+        "Một, hai, ba, dzo!!",
+        "乾杯！",
+        "一般",
+        "あいさつ",
+        "乾杯",
+        "乾杯"
+    ),
+    ConversationItem(
+        "Chúc sức khỏe!",
+        "乾杯！",
+        "一般",
+        "あいさつ",
+        "乾杯",
+        "乾杯"
+    ),
+    ConversationItem(
+        "Thật à?",
+        "本当？",
+        "一般",
+        "あいさつ",
+        "反応",
+        "驚き"
+    ),
+    ConversationItem(
+        "Ghê vậy!",
+        "すごいね・やばいね",
+        "一般",
+        "あいさつ",
+        "反応",
+        "驚き"
+    ),
+    ConversationItem(
+        "Tuyệt vời!",
+        "最高！",
+        "一般",
+        "あいさつ",
+        "反応",
+        "称賛"
+    ),
+    ConversationItem(
+        "Ồ, vậy hả?",
+        "へえ、そうなんだ",
+        "一般",
+        "あいさつ",
+        "反応",
+        "相づち"
+    ),
+    ConversationItem(
+        "Đúng rồi.",
+        "その通り",
+        "一般",
+        "あいさつ",
+        "反応",
+        "同意"
+    ),
+    ConversationItem(
+        "Thế à?",
+        "そうなの？",
+        "一般",
+        "あいさつ",
+        "反応",
+        "相づち"
+    ),
+    ConversationItem(
+        "Hay đó!",
+        "それいいね！",
+        "一般",
+        "あいさつ",
+        "反応",
+        "称賛"
+    ),
+
+    //
     // ✅ Part1 基本文型
     //
     ConversationItem(

@@ -35,47 +35,26 @@ class MainActivity : ComponentActivity() {
         com.github.mikephil.charting.utils.Utils.init(this)
 
         setContent {
-            var showSplash by remember { mutableStateOf(true) }
 
-            val authViewModel: AuthViewModel = viewModel()
+            var showSplash by remember {
+                mutableStateOf(true)
+            }
 
-            val authState by authViewModel.uiState.collectAsState()
+            val authViewModel: AuthViewModel =
+                viewModel()
 
-            authViewModel.init()
+            LaunchedEffect(Unit) {
+                authViewModel.init()
+            }
 
             if (showSplash) {
                 SplashScreen {
                     showSplash = false
                 }
             } else {
-
-                when {
-                    showSplash -> {
-                        SplashScreen {
-                            showSplash = false
-                        }
-                    }
-                    authState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    authState.isLoggedIn -> {
-                        MainScreen(
-                            authViewModel = authViewModel
-                        )
-                    }
-                    authState.isOffline -> {
-                        MainScreen(
-                            authViewModel = authViewModel
-                        )
-                    }
-                    else -> {
-                        LoginScreen(
-                            authViewModel = authViewModel
-                        )
-                    }
-                }
+                MainScreen(
+                    authViewModel = authViewModel
+                )
             }
         }
     }

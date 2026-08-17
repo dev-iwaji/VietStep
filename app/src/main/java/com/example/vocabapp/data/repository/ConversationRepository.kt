@@ -3,51 +3,16 @@ package com.example.vocabapp.data.repository
 import android.content.SharedPreferences
 import com.example.vocabapp.utils.PrefKeys
 import android.util.Log
-import com.example.vocabapp.data.model.ConversationLeaningState
-import com.example.vocabapp.data.model.GrammarLeaningState
+import com.example.vocabapp.data.model.ConversationLearningState
+import com.example.vocabapp.data.model.GrammarLearningState
 
 class ConversationRepository(
     private val prefs: SharedPreferences,
     private val firebaseRepository: FirebaseRepository
 ) {
 
-    suspend fun restoreFromFirebase() :Boolean {
-
-        return try {
-
-            val theme = firebaseRepository.loadConversationTheme()
-            if (theme.isNotEmpty()) {
-                prefs.edit()
-                    .putString(PrefKeys.CONVERSATION_THEME, theme)
-                    .apply()
-            }
-
-            val part = firebaseRepository.loadConversationPart()
-            if (part.isNotEmpty()) {
-                prefs.edit()
-                    .putString(PrefKeys.CONVERSATION_PART, part)
-                    .apply()
-            }
-
-            val speechRate = firebaseRepository.loadConversationSpeechRate()
-            prefs.edit()
-                .putFloat(PrefKeys.CONVERSATION_SPEECH_RATE, speechRate)
-                .apply()
-
-            true
-
-        } catch (e: Exception) {
-            Log.w(
-                "ConversationRepository",
-                "Firebase restore failed. Use local data.",
-                e
-            )
-            false
-        }
-    }
-
     fun applyDownloadedLearningState(
-        state: ConversationLeaningState
+        state: ConversationLearningState
     ) {
         prefs.edit()
             .putString(

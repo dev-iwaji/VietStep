@@ -321,7 +321,6 @@ fun WordSettingDialog(
             Button(
                 onClick = {
                     onSelectedPos(tempSelectedPos)
-//                    onUpdatetDeck()
                     onDismiss()
                 }
             ) {

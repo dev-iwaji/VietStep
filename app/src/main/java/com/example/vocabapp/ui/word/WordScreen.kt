@@ -53,13 +53,13 @@ fun WordScreen(
 
     var completedLap by rememberSaveable { mutableStateOf(false) }
 
-    // ? 学習対象単語
+    // ✅ 学習対象単語
     val targetWords = wordViewModel.getFilteredWords()
 
-    // ? 現在の単語
+    // ✅ 現在の単語
     val currentWord = uiState.deck.getOrNull(uiState.deckIndex)
 
-    // ? CSV追加
+    // ✅ CSV追加
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) {
@@ -162,25 +162,25 @@ fun WordScreen(
 
             else -> {
 
-                // ? 進捗計算
+                // ✅ 進捗計算
                 val progress =
                     if (uiState.deck.size == 0) 0f
                     else (uiState.deckIndex + 1).toFloat() / uiState.deck.size.toFloat()
 
-                // ? アニメーション
+                // ✅ アニメーション
                 val animatedProgress by animateFloatAsState(
                     targetValue = progress,
                     label = ""
                 )
 
-                // ? 色変化
+                // ✅ 色変化
                 val progressColor = when {
                     progress < 0.3f -> Color.Red
                     progress < 0.7f -> Color(0xFFFFC107)
                     else -> Color(0xFF4CAF50)
                 }
 
-                // ? プログレスバー
+                // ✅ プログレスバー
                 LinearProgressIndicator(
                     progress = animatedProgress,
                     color = progressColor,
@@ -198,16 +198,16 @@ fun WordScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // ? 左エリア（中央寄せ）
+                    // ✅ 左エリア（中央寄せ）
                     Box(
                         modifier = Modifier
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        // ? ? 1周完了メッセージ
+                        // ✅ 🎉 1周完了メッセージ
                         if (uiState.deckIndex == 0 && uiState.deck.size > 0 && completedLap) {
                             Text(
-                                text = "? 1周完了！",
+                                text = "\uD83C\uDF89 1周完了！",
                                 color = Color(0xFF4CAF50),
                                 fontSize = 14.sp
                             )
@@ -216,14 +216,14 @@ fun WordScreen(
                         }
                     }
 
-                    // ? 右エリア（縦＋右寄せ）
+                    // ✅ 右エリア（縦＋右寄せ）
                     Column(
                         horizontalAlignment = Alignment.End
                     ) {
-                        // ? 数字表示
+                        // ✅ 数字表示
                         Text("${uiState.deckIndex + 1} / ${uiState.deck.size}", fontSize = 12.sp)
 
-                        // ? 残り表示
+                        // ✅ 残り表示
                         Text(
                             "残り: ${uiState.deck.size - (uiState.deckIndex + 1)}",
                             fontSize = 12.sp
@@ -234,15 +234,15 @@ fun WordScreen(
                 if (uiState.studyMode == "card") {
 
                     // =====================
-                    // ? カードモード
+                    // ✅ カードモード
                     // =====================
 
                     currentWord.let { word ->
 
-                        // ? スケール状態（?用）
+                        // ✅ スケール状態（?用）
                         var starScale by remember { mutableStateOf(1f) }
 
-                        // ? 元に戻す
+                        // ✅ 元に戻す
                         LaunchedEffect(starScale) {
                             if (starScale > 1f) {
                                 delay(100)
@@ -259,7 +259,7 @@ fun WordScreen(
                                 .padding(16.dp)
                         ) {
 
-                            // ? スワイプカード
+                            // ✅ スワイプカード
                             SwipeCard(
                                 onRight = {
                                     if (soundEnabled) {
@@ -282,15 +282,37 @@ fun WordScreen(
                                     completedLap = true
                                 }
                             ) {
+                                var isTwoLines by remember { mutableStateOf(false)}
 
-                                // ? 中央の単語
+                                // ✅ 中央の単語
                                 Column(
-                                    modifier = Modifier.align(Alignment.Center),
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .fillMaxWidth()
+                                        .padding(horizontal = if (isTwoLines) 60.dp else 24.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
 
-                                        // ★ 品詞（色付き・小さく）
+                                        val vietnameseFontSize =
+                                            when {
+                                                currentWord.vietnamese.length >= 16 -> 32.sp
+                                                currentWord.vietnamese.length >= 12 -> 36.sp
+                                                else -> 40.sp
+                                            }
+
+                                        val vietnameseLineHeight =
+                                            when {
+                                                currentWord.vietnamese.length >= 16 -> 38.sp
+                                                currentWord.vietnamese.length >= 12 -> 42.sp
+                                                else -> 46.sp
+                                            }
+
+                                        // ✅ 品詞（色付き・小さく）
                                         Text(
                                             text = currentWord.partOfSpeech,
                                             color = getPosColor(currentWord.partOfSpeech),
@@ -299,16 +321,22 @@ fun WordScreen(
 
                                         Spacer(Modifier.width(8.dp))
 
-                                        // ★ ベトナム語（大きく）
+                                        // ✅ ベトナム語（大きく）
                                         Text(
                                             text = currentWord.vietnamese,
-                                            fontSize = 40.sp,
-                                            fontWeight = FontWeight.Bold
+                                            fontSize = vietnameseFontSize,
+                                            lineHeight = vietnameseLineHeight,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Start,
+                                            maxLines = 2,
+                                            onTextLayout = {result->
+                                                isTwoLines = result.lineCount >= 2
+                                            }
                                         )
                                     }
                                 }
 
-                                // ? お気に入り
+                                //✅ お気に入り
                                 Text(
                                     text = if (uiState.favorites.contains(currentWord.deckKey())) "★" else "☆",
                                     fontSize = 28.sp,
@@ -328,7 +356,7 @@ fun WordScreen(
 
                     Spacer(Modifier.height(4.dp))
 
-                    // ? 下テキスト
+                    // ✅ 下テキスト
                     Text(
                         "← 未習得　　覚えた →",
                         modifier = Modifier.fillMaxWidth(),
@@ -341,7 +369,7 @@ fun WordScreen(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // ? 発音
+                        // ✅ 発音
                         Button(
                             onClick = {
                                 tts?.speak(
@@ -358,7 +386,7 @@ fun WordScreen(
                             Text("🔊 発音", fontSize = 18.sp)
                         }
 
-                        // ? 表示切替
+                        // ✅ 表示切替
                         Button(
                             onClick = { showAnswer = !showAnswer },
                             modifier = Modifier
@@ -374,14 +402,14 @@ fun WordScreen(
 
                     Spacer(Modifier.height(12.dp))
 
-                    // ? 日本語表示
+                    // ✅ 日本語表示
                     if (showAnswer) {
                         Text(currentWord.japanese, fontSize = 28.sp)
                     }
                 } else {
 
                     // =====================
-                    // ? クイズモード
+                    // ✅ クイズモード
                     // =====================
 
                     GenericQuizUI(
@@ -391,6 +419,12 @@ fun WordScreen(
                         correctAnswer = currentWord.japanese,
                         allOptions = targetWords.map { it.japanese },
 
+                        quizStats = uiState.quizStats,
+                        onQuizResult = { correct ->
+                            wordViewModel.updateQuizStats(
+                                correct
+                            )
+                        },
                         onAnswer = { correct ->
                             wordViewModel.answerWord(currentWord, correct)
                         }
@@ -401,7 +435,7 @@ fun WordScreen(
     }
 
     //
-    // ? 設定ダイアログ
+    // ✅ 設定ダイアログ
     //
     if (showSettings) {
 
@@ -454,19 +488,23 @@ fun parseCsv(context: Context, uri: Uri): List<Word> {
 
             if (parts.size >= 3) {
 
-                val pos = parts[0]
+                val id = parts[0]
                     .trim()
                     .trim('"')
-                val vi = parts[1]
+                val pos = parts[1]
                     .trim()
                     .trim('"')
-                val ja = parts[2]
+                val vi = parts[2]
+                    .trim()
+                    .trim('"')
+                val ja = parts[3]
                     .trim()
                     .trim('"')
 
                 if (vi.isNotEmpty() && ja.isNotEmpty()) {
                     list.add(
                         Word(
+                            categoryId = id,
                             partOfSpeech = pos,
                             vietnamese = vi,
                             japanese = ja,

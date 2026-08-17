@@ -6,8 +6,4 @@ data class AuthUiState(
     val isLoggedIn: Boolean = false,
 
     val uid: String? = null,
-
-    val isOffline: Boolean = false,
-
-    val isFirebaseConnected: Boolean = false,
 )

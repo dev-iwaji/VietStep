@@ -16,6 +16,7 @@ import com.example.vocabapp.data.model.Chunk
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.ChunkRepository
 import com.example.vocabapp.data.source.baseChunks
+import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.domain.generateChunkDeck
 import com.example.vocabapp.domain.updateChunk
 import com.example.vocabapp.util.loadChunkProgress
@@ -202,33 +203,6 @@ class ChunkViewModel : ViewModel() {
         setDeckIndex(0)
     }
 
-    fun setDifficulty(
-        difficulty: Set<String>
-    ) {
-        repository.saveFilterDifficulty(difficulty)
-
-        _uiState.update {
-
-            it.copy(
-                selectedDifficulty = difficulty
-            )
-        }
-    }
-
-    fun setCategory(
-        category: Set<String>
-    ) {
-        repository.saveFilterCategory(category)
-
-        _uiState.update {
-            it.copy(
-                selectedCategory = category
-            )
-        }
-
-        rebuildDeck()
-    }
-
     fun setWeakMode(
         enabled: Boolean
     ) {
@@ -260,7 +234,7 @@ class ChunkViewModel : ViewModel() {
 
         return uiState.value.chunks
 
-            // レベル
+            // ✅ レベル
             .filter {
 
                 uiState.value.selectedDifficulty.isEmpty() ||
@@ -270,7 +244,7 @@ class ChunkViewModel : ViewModel() {
                         )
             }
 
-            // カテゴリ
+            // ✅ カテゴリ
             .filter {
 
                 uiState.value.selectedCategory.isEmpty() ||
@@ -280,7 +254,7 @@ class ChunkViewModel : ViewModel() {
                         )
             }
 
-            // 苦手語
+            // ✅ 苦手語
             .let { list ->
 
                 if (uiState.value.weakMode) {
@@ -337,10 +311,45 @@ class ChunkViewModel : ViewModel() {
         saveDeckOrder()
     }
 
+    fun applyFilter(
+        category: Set<String>,
+        difficulty: Set<String>
+    ) {
+        val current = _uiState.value
+
+        if (
+            category == current.selectedCategory &&
+            difficulty == current.selectedDifficulty
+        ) {
+            return
+        }
+
+        repository.saveFilterCategory(category)
+        repository.saveFilterDifficulty(difficulty)
+
+        _uiState.update {
+            it.copy(
+                selectedCategory = category,
+                selectedDifficulty = difficulty
+            )
+        }
+
+        rebuildDeck()
+    }
+
+    fun updateQuizStats(
+        correct: Boolean
+    ) {
+        _uiState.update {
+            it.copy(
+                quizStats =
+                it.quizStats.updated(correct)
+            )
+        }
+    }
+
     private fun nextCard() {
-
         val currentIndex = uiState.value.deckIndex
-
         val lastIndex = uiState.value.deck.lastIndex
 
         if (lastIndex < 0) {
@@ -372,18 +381,6 @@ class ChunkViewModel : ViewModel() {
         val deckIds = uiState.value.deck.map { it.deckKey() }
 
         repository.saveDeckOrder(deckIds)
-    }
-
-    private fun setDeck(
-        chunk: List<Chunk>
-    ) {
-
-        _uiState.update {
-
-            it.copy(
-                deck = chunk
-            )
-        }
     }
 
     private fun setDeckIndex(

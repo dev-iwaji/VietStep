@@ -2,13 +2,13 @@ package com.example.vocabapp.ui.grammar
 
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.GrammarRepository
+import com.example.vocabapp.data.model.updated
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+
 
 class GrammarViewModel : ViewModel() {
 
@@ -78,6 +78,17 @@ class GrammarViewModel : ViewModel() {
 
             it.copy(
                 speechRate = speed
+            )
+        }
+    }
+
+    fun updateQuizStats(
+        correct: Boolean
+    ) {
+        _uiState.update {
+            it.copy(
+                quizStats =
+                it.quizStats.updated(correct)
             )
         }
     }

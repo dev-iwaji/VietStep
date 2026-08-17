@@ -8,12 +8,16 @@ android {
     namespace 'com.example.vocabapp'
     compileSdk 34
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId "com.example.vocabapp"
         minSdk 31
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 100
+        versionName "1.0.0-rc2"
     }
 
     buildFeatures { compose true }

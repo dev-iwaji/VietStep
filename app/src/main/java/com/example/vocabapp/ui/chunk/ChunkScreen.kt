@@ -49,31 +49,8 @@ fun ChunkScreen(
 
     val context = LocalContext.current
 
-    // ✅ 初期化
-//    var initialized by remember {mutableStateOf(false)}
-
     var completedLap by rememberSaveable { mutableStateOf(false) }
 
-/*
-    LaunchedEffect(Unit) {
-        viewModel.initialize(prefs)
-        viewModel.load()
-        Log.d("ChunkScreen", "load called")
-    }
-
-    // ✅ フィルター変更によるデッキ再生成
-    LaunchedEffect(
-        uiState.selectedCategory,
-        uiState.selectedDifficulty
-    ) {
-        completedLap = false
-
-        if (initialized == false)
-            initialized = true
-        else
-            viewModel.rebuildDeck(viewModel.getFilteredChunks())
-    }
-*/
     // ✅ 学習対象チャンク
     val targetChunks = viewModel.getFilteredChunks()
 
@@ -226,40 +203,48 @@ fun ChunkScreen(
                             completedLap = true
                         }
                     ) {
-
-                        // ✅ 中央の単語
-                        Column(
-                            modifier = Modifier.align(Alignment.Center),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-
-                                Spacer(Modifier.width(8.dp))
-
-                                // ★ ベトナム語（大きく）
-                                Text(
-                                    text = currentChunk.vietnamese,
-                                    fontSize = 30.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
                         Column(
                             modifier = Modifier
-                                .align(Alignment.TopStart)
+                                .fillMaxSize()
                                 .padding(12.dp)
                         ) {
+
+                            // ✅ 文型
                             Text(
                                 text = currentChunk.pattern,
                                 fontSize = 14.sp,
                                 color = Color.Gray
                             )
+
+                            // ✅ 日本語の説明
                             Text(
-                                currentChunk.memo,
+                                text = currentChunk.memo,
                                 fontSize = 12.sp,
                                 color = Color.Gray
                             )
+
+                            // ✅ 上の説明とベトナム語の間
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+
+                            // ✅ 残り領域の中央にベトナム語
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+
+                                Text(
+                                    text = currentChunk.vietnamese,
+                                    fontSize = 32.sp,
+                                    lineHeight = 38.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2
+                                )
+                            }
                         }
                     }
                 }
@@ -326,6 +311,12 @@ fun ChunkScreen(
                 correctAnswer = currentChunk.japanese,
                 allOptions = targetChunks.map { it.japanese },
 
+                quizStats = uiState.quizStats,
+                onQuizResult = { correct ->
+                    viewModel.updateQuizStats(
+                        correct
+                    )
+                },
                 onAnswer = { correct ->
                     // ✅ 学習データ更新
                     viewModel.answerChunk(currentChunk, correct)
@@ -354,16 +345,10 @@ fun ChunkScreen(
                 completedLap = false
             },
             onApply = { category, difficulty ->
-                if (category != uiState.selectedCategory) {
-                    viewModel.setCategory(
-                        category
-                    )
-                }
-                if (difficulty != uiState.selectedDifficulty) {
-                    viewModel.setDifficulty(
-                        difficulty
-                    )
-                }
+                viewModel.applyFilter(
+                    category,
+                    difficulty
+                )
                 completedLap = false
             },
             onDismiss = {

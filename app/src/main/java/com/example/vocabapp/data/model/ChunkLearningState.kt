@@ -1,6 +1,6 @@
 package com.example.vocabapp.data.model
 
-data class ChunkLeaningState(
+data class ChunkLearningState(
     val progress: String = "[]",
     val deckOrder: String = "[]",
     val deckIndex: Int = 0,

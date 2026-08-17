@@ -20,14 +20,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -36,20 +33,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import com.example.vocabapp.R
 import com.example.vocabapp.util.playSound
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalClipboardManager
+import com.example.vocabapp.BuildConfig
 import androidx.compose.ui.text.AnnotatedString
-import com.example.vocabapp.manager.ResetManager
-import com.github.mikephil.charting.BuildConfig
 
 @Composable
 fun SettingsDialog(
@@ -74,9 +63,12 @@ fun SettingsDialog(
 
     var showUid by remember {mutableStateOf(false)}
 
-    val isFirebaseAvailable =
-        uid != null && isOnline
+    val isFirebaseLoggedIn = uid != null
 
+    val canSync =
+        isFirebaseLoggedIn &&
+                isOnline &&
+                !isSyncing
     AlertDialog(
 
         onDismissRequest = onDismiss,
@@ -89,14 +81,43 @@ fun SettingsDialog(
 
             Column {
 
-                Text("Firebase")
+                Text(
+                    text = "Firebase同期",
+                    fontWeight = FontWeight.Bold
+                )
 
+                Spacer(
+                    Modifier.height(8.dp)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("状態")
+
+                    Spacer(
+                        Modifier.width(16.dp)
+                    )
+
+                    Text(
+                        text = when {
+                            !isFirebaseLoggedIn ->
+                                "❌ 未ログイン"
+
+                            !isOnline ->
+                                "ログイン済み（オフライン）"
+
+                            else ->
+                                "✅ 接続中"
+                        }
+                    )
+                }
                 Spacer(Modifier.width(16.dp))
 
                 Button(
                     onClick = onDownloadFromFirebase,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = isFirebaseAvailable && !isSyncing
+                    enabled = canSync
                 ) {
                     if (isSyncing) {
                         CircularProgressIndicator(
@@ -110,7 +131,7 @@ fun SettingsDialog(
 
                         Text("同期中")
                     } else {
-                        Text("他端末の続きから再開")
+                        Text("Firebaseでの同期")
                     }
                 }
                 Box(
@@ -119,74 +140,75 @@ fun SettingsDialog(
                         .heightIn(min = 20.dp)
                 ) {
                     when {
-                        !isOnline -> {
-                            Text(
-                                text = "ネットワークに接続してください"
-                            )
-                        }
-
-                        uid == null -> {
-                            Text(
-                                text = "他端末との同期にはログインが必要です"
-                            )
-                        }
-
                         syncMessage != null -> {
+                            Text(syncMessage)
+                        }
+
+                        isFirebaseLoggedIn &&
+                                !isOnline -> {
                             Text(
-                                text = syncMessage
+                                "ネットワークに接続すると\n同期できます"
+                            )
+                        }
+
+                        !isFirebaseLoggedIn -> {
+                            Text(
+                                "Googleログインすると\nFirebaseで同期できます"
                             )
                         }
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                if (isFirebaseLoggedIn) {
 
-                Text("UID")
+                    Spacer(Modifier.height(16.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = {
-                            showUid = !showUid
-                        }
-                        , modifier = Modifier.weight(1f)
+                    Text("UID")
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            if (showUid) {
-                                "非表示"
-                            } else {
-                                "表示"
-                            }
-                        )
-                    }
+                        Button(
+                            onClick = {
+                                showUid = !showUid
+                            }, modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                if (showUid) {
+                                    "非表示"
+                                } else {
+                                    "表示"
+                                }
+                            )
+                        }
 
-                    Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(8.dp))
 
-                    val clipboard =
-                        LocalClipboardManager.current
+                        val clipboard =
+                            LocalClipboardManager.current
 
-                    Button(
-                        onClick = {
-                            clipboard.setText(
-                                AnnotatedString(
-                                    uid ?: ""
+                        Button(
+                            onClick = {
+                                clipboard.setText(
+                                    AnnotatedString(
+                                        uid ?: ""
+                                    )
                                 )
-                            )
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("コピー")
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("コピー")
+                        }
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp)
-                ) {
-                    if (showUid) {
-                        Text(uid ?: "-")
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(20.dp)
+                    ) {
+                        if (showUid) {
+                            Text(uid ?: "-")
+                        }
                     }
                 }
 
@@ -205,8 +227,7 @@ fun SettingsDialog(
 
                     Text(
                         "ダークモード",
-                        modifier =
-                        Modifier.weight(1f)
+                        modifier = Modifier.weight(1f)
                     )
 
                     Switch(
@@ -288,7 +309,7 @@ fun SettingsDialog(
 
                 Button(
                     onClick = {
-                        if (isFirebaseAvailable) {
+                        if (isFirebaseLoggedIn) {
                             onLogout()
                         } else {
                             onLogin()
@@ -297,10 +318,10 @@ fun SettingsDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        if (isFirebaseAvailable) {
+                        if (isFirebaseLoggedIn) {
                             "ログアウト"
                         } else {
-                            "ログイン"
+                            "Googleでログイン"
                         }
                     )
                 }

@@ -186,6 +186,12 @@ fun ConversationScreen(
                     correctAnswer = currentItem.japanese,
                     allOptions = quizSource.map { it.japanese },
 
+                    quizStats = uiState.quizStats,
+                    onQuizResult = { correct ->
+                        viewModel.updateQuizStats(
+                            correct
+                        )
+                    },
                     onAnswer = {
                         next()
                     }

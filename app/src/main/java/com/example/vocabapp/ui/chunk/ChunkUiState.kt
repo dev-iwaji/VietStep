@@ -2,6 +2,7 @@ package com.example.vocabapp.ui.chunk
 
 import com.example.vocabapp.data.model.Chunk
 import com.example.vocabapp.data.source.baseChunks
+import com.example.vocabapp.data.model.QuizStats
 
 data class ChunkUiState(
     val dirty: Boolean = false,
@@ -20,4 +21,6 @@ data class ChunkUiState(
     val weakMode: Boolean = false,
 
     val studyMode: String = "card",
+
+    val quizStats: QuizStats = QuizStats(),
 )

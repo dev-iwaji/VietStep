@@ -1,27 +1,15 @@
-// MainScreen.kt
-
 package com.example.vocabapp.ui.main
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vocabapp.R
 import com.example.vocabapp.ui.word.WordScreen
 import com.example.vocabapp.ui.word.WordViewModel
 import com.example.vocabapp.ui.chunk.ChunkScreen
@@ -34,28 +22,26 @@ import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.manager.ResetManager
 import com.example.vocabapp.ui.auth.AuthViewModel
 import com.example.vocabapp.ui.settings.SettingsDialog
-import com.example.vocabapp.util.playSound
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import java.util.Locale
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.example.vocabapp.data.repository.ChunkRepository
 import com.example.vocabapp.data.repository.SyncRepository
 import com.example.vocabapp.data.repository.WordRepository
 import com.example.vocabapp.ui.sync.SyncViewModel
 import com.example.vocabapp.util.NetworkMonitor
-import androidx.compose.runtime.rememberCoroutineScope
 import com.example.vocabapp.data.repository.ConversationRepository
 import com.example.vocabapp.data.repository.GrammarRepository
 import com.example.vocabapp.ui.conversation.ConversationViewModel
 import com.example.vocabapp.ui.grammar.GrammarViewModel
+import com.example.vocabapp.ui.login.LoginScreen
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.window.Dialog
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,18 +107,25 @@ fun MainScreen(authViewModel: AuthViewModel) {
         )
     }
 
+    var showLogin by remember {
+        mutableStateOf(false)
+    }
+
     // ✅ 初期化処理
     LaunchedEffect(Unit) {
-        // ✅ mainViewModelを構築
+        // ✅ 最初に全ViewModelを初期化
         mainViewModel.initialize(prefs)
-        mainViewModel.load()
-
         wordViewModel.initialize(prefs)
         chunkViewModel.initialize(prefs)
         grammarViewModel.initialize(prefs)
         conversationViewModel.initialize(prefs)
 
-        val localResetAT = uiState.resetAT
+        syncViewModel.initialize(
+            repository = syncRepository
+        )
+
+        // ✅ SharedPreferencesから直接取得
+        val localResetAT = mainViewModel.getLocalResetAT()
 
         val firebaseResetAT =
             try {
@@ -146,17 +139,19 @@ fun MainScreen(authViewModel: AuthViewModel) {
                 0L
             }
 
-        if (
-            firebaseResetAT > 0L &&
-            firebaseResetAT > localResetAT
-        ) {
+        // ✅ 他端末で新しい初期化が行われた場合だけローカル削除
+        val shouldReset =
+            firebaseResetAT != null &&
+                    firebaseResetAT > localResetAT
+
+        if (shouldReset) {
             try {
                 ResetManager.resetLocalOnly(
                     prefs = prefs
                 )
 
-                mainViewModel.setResetAT(
-                    firebaseResetAT
+                mainViewModel.setLocalResetAT(
+                    firebaseResetAT!!
                 )
             } catch (e: Exception) {
                 Log.e(
@@ -167,14 +162,12 @@ fun MainScreen(authViewModel: AuthViewModel) {
             }
         }
 
+        // ✅ リセット判定後にローカル学習データを読み込む
+        mainViewModel.load()
         wordViewModel.load(context)
         chunkViewModel.load()
         grammarViewModel.load()
         conversationViewModel.load()
-
-        syncViewModel.initialize(
-            repository = syncRepository
-        )
     }
 
     var tab by remember { mutableStateOf(0) }
@@ -204,6 +197,27 @@ fun MainScreen(authViewModel: AuthViewModel) {
     }
 
     val scope = rememberCoroutineScope()
+
+    DisposableEffect(
+        networkMonitor
+    ) {
+
+        val callback =
+            networkMonitor.registerCallback { online ->
+
+                scope.launch {
+                    syncViewModel.updateOnlineState(
+                        online
+                    )
+                }
+            }
+
+        onDispose {
+            networkMonitor.unregisterCallback(
+                callback
+            )
+        }
+    }
 
     fun selectTab(newTab: Int) {
         if (newTab == tab) {
@@ -261,9 +275,6 @@ fun MainScreen(authViewModel: AuthViewModel) {
                         containerColor = MaterialTheme.colorScheme.surface
                     ),
                     actions = {
-                        var showResetDialog by remember {
-                            mutableStateOf(false)
-                        }
 
                         Box {
 
@@ -324,6 +335,11 @@ fun MainScreen(authViewModel: AuthViewModel) {
                                             val resetTime =
                                                 System.currentTimeMillis()
 
+                                            ResetManager.resetAll(
+                                                prefs,
+                                                firebaseRepository
+                                            )
+
                                             mainViewModel.setResetAT(
                                                 resetTime
                                             )
@@ -349,15 +365,15 @@ fun MainScreen(authViewModel: AuthViewModel) {
                                     syncViewModel.clearMessage()
 
                                     showSettings = false
+                                    showLogin = true
                                     menuExpanded = false
-
-                                    authViewModel.returnToLogin()
                                 },
                                 onLogout = {
                                     menuExpanded = false
                                     showSettings = false
                                     authViewModel.logout()
-                                },
+                                    showSettings = true
+                                    },
                                 onDownloadFromFirebase = {
                                     val online = networkMonitor.isOnline()
                                     syncViewModel.updateOnlineState(online)
@@ -469,6 +485,24 @@ fun MainScreen(authViewModel: AuthViewModel) {
                 }
             }
         }
+
+        if (showLogin) {
+            Dialog(
+                onDismissRequest = {
+                    showLogin = false
+                    showSettings = true
+                }
+            ) {
+                LoginScreen(
+                    authViewModel = authViewModel,
+                    isOnline = syncUiState.isOnline,
+                    onDismiss = {
+                        showLogin = false
+                        showSettings = true
+                    }
+                )
+            }
+        }
     }
 
     if (syncUiState.showOverwriteConfirmation) {
@@ -477,7 +511,7 @@ fun MainScreen(authViewModel: AuthViewModel) {
                 syncViewModel.cancelDownload()
             },
             title = {
-                Text("他端末の続きから再開")
+                Text("Firebaseでの同期")
             },
             text = {
                 Text(

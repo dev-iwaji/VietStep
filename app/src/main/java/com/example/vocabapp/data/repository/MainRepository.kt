@@ -2,29 +2,12 @@ package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
 import com.example.vocabapp.utils.PrefKeys
+import android.util.Log
 
 class MainRepository (
     private val prefs: SharedPreferences,
     private val firebaseRepository: FirebaseRepository
 ) {
-
-    suspend fun restoreFromFirebase() {
-
-        val volume = firebaseRepository.loadMainSoundVolume()
-        prefs.edit()
-            .putFloat(PrefKeys.MAIN_SOUND_VOLUME, volume)
-            .apply()
-
-        val enabled = firebaseRepository.loadMainDarkMode()
-        prefs.edit()
-            .putBoolean(PrefKeys.MAIN_DARK_MODE, enabled)
-            .apply()
-
-        val resetAT = firebaseRepository.loadResetAT()
-        prefs.edit()
-            .putLong(PrefKeys.RESET_AT, resetAT)
-            .apply()
-    }
 
     fun loadResetAT(): Long {
         return prefs.getLong(
@@ -33,14 +16,21 @@ class MainRepository (
         )
     }
 
-    fun saveResetAT(time: Long) {
+    fun saveLocalResetAT(time: Long) {
+        Log.d(
+            "RESET_CHECK",
+            "saveLocalResetAT: $time"
+        )
         prefs.edit()
             .putLong(
                 PrefKeys.RESET_AT,
                 time
             )
             .apply()
+    }
 
+    fun saveResetAT(time: Long) {
+        saveLocalResetAT(time)
         firebaseRepository.saveResetAT(time)
     }
 

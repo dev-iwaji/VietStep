@@ -226,15 +226,34 @@ class WordViewModel : ViewModel() {
     }
 
     fun jumpToWord(
-            word: Word
+        word: Word
     ) {
-        val newDeck =
-            listOf(word) +
-            uiState.value.deck.filter {
-                it != word
+        val currentDeck =
+            uiState.value.deck
+
+        val targetKey =
+            word.deckKey()
+
+        // すでにデッキ内にある場合は、
+        // デッキ側のWordを使用する
+        val existingWord =
+            currentDeck.firstOrNull {
+                it.deckKey() == targetKey
             }
+
+        val targetWord =
+            existingWord ?: word
+
+        val newDeck =
+            listOf(targetWord) +
+                    currentDeck.filter {
+                        it.deckKey() != targetKey
+                    }
+
         setDeck(newDeck)
         setDeckIndex(0)
+
+        saveDeckOrder()
     }
 
     fun addCsvFile(
@@ -288,45 +307,46 @@ class WordViewModel : ViewModel() {
         rebuildDeck()
     }
 
-    fun setSelectedPos(
-        pos: Set<String>
+    fun applySettings(
+        pos: Set<String>,
+        weakMode: Boolean,
+        favoriteOnly: Boolean,
+        studyMode: String
     ) {
+        _uiState.update {
+            it.copy(
+                studyMode = studyMode
+            )
+        }
+
+        val current = _uiState.value
+
+        if (
+            pos == current.selectedPos &&
+            weakMode == current.weakMode &&
+            favoriteOnly == current.favoriteOnly
+        ) {
+            return
+        }
 
         repository.saveFilterPos(pos)
+        repository.saveWeakMode(weakMode)
+        repository.saveFavoriteOnly(favoriteOnly)
 
         _uiState.update {
             it.copy(
-                selectedPos = pos
+                selectedPos = pos,
+                weakMode = weakMode,
+                favoriteOnly = favoriteOnly
             )
         }
 
+        // ✅ 新しい条件でデッキ再構築
         rebuildDeck()
-    }
 
-    fun setWeakMode(
-        enabled: Boolean
-    ) {
-        repository.saveWeakMode(enabled)
-
-        _uiState.update {
-
-            it.copy(
-                weakMode = enabled
-            )
-        }
-
-        rebuildDeck()
-    }
-
-    fun setStudyMode(
-        mode: String
-    ) {
-
-        _uiState.update {
-
-            it.copy(
-                studyMode = mode
-            )
+        // ✅ 再構築後のdeckOrder / deckIndexを即時同期
+        viewModelScope.launch {
+            repository.uploadDeckState()
         }
     }
 
@@ -397,21 +417,6 @@ class WordViewModel : ViewModel() {
         nextCard()
 
         saveDeckOrder()
-    }
-
-    fun setFavoriteOnly(
-        enabled: Boolean
-    ) {
-        repository.saveFavoriteOnly(enabled)
-
-        _uiState.update {
-
-            it.copy(
-                favoriteOnly = enabled
-            )
-        }
-
-        rebuildDeck()
     }
 
     fun getTodayStat(): DailyStat? {

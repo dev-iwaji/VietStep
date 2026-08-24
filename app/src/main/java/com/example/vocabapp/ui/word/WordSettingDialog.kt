@@ -44,10 +44,11 @@ fun WordSettingDialog(
     soundVolume: Float,
     uiState: WordUiState,
     launcher: ActivityResultLauncher<Array<String>>,
-    onChangeWeakMode: (Boolean) -> Unit,
-    onChangeFavoriteOnly: (Boolean) -> Unit,
-    onChangeStudyMode: (String) -> Unit,
-    onSelectedPos: (Set<String>) -> Unit,
+//    onChangeWeakMode: (Boolean) -> Unit,
+//    onChangeFavoriteOnly: (Boolean) -> Unit,
+//    onChangeStudyMode: (String) -> Unit,
+//    onSelectedPos: (Set<String>) -> Unit,
+    onApply: (Set<String>, Boolean, Boolean, String) ->Unit,
     onUpdatetDeck: () -> Unit,
     onToggleCsvFile: (CsvFile) -> Unit,
     onRemoveCsvFile: (CsvFile) -> Unit,
@@ -61,8 +62,20 @@ fun WordSettingDialog(
     var rotation by remember { mutableStateOf(0f) }
     var shake by remember { mutableStateOf(false) }
 
-    var tempSelectedPos by remember {
+    var editingPos by remember(uiState.selectedPos) {
         mutableStateOf(uiState.selectedPos)
+    }
+
+    var editingWeakMode by remember(uiState.weakMode) {
+        mutableStateOf(uiState.weakMode)
+    }
+
+    var editingFavoriteOnly by remember(uiState.favoriteOnly) {
+        mutableStateOf(uiState.favoriteOnly)
+    }
+
+    var editingStudyMode by remember(uiState.studyMode) {
+        mutableStateOf(uiState.studyMode)
     }
 
     // シャッフルボタンのアニメーション
@@ -134,8 +147,8 @@ fun WordSettingDialog(
 
                 val tempTargetCount =
                     uiState.words.count {
-                        tempSelectedPos.isEmpty() ||
-                        tempSelectedPos.contains(
+                        editingPos.isEmpty() ||
+                        editingPos.contains(
                             it.partOfSpeech
                         )
                     }
@@ -168,13 +181,13 @@ fun WordSettingDialog(
                             Row(verticalAlignment = Alignment.CenterVertically) {
 
                                 Checkbox(
-                                    checked = tempSelectedPos.contains(pos),
+                                    checked = editingPos.contains(pos),
                                     onCheckedChange = {
-                                        tempSelectedPos =
-                                            if (tempSelectedPos.contains(pos)) {
-                                                tempSelectedPos - pos
+                                        editingPos =
+                                            if (editingPos.contains(pos)) {
+                                                editingPos - pos
                                             } else {
-                                                tempSelectedPos + pos
+                                                editingPos + pos
                                             }
                                     }
                                 )
@@ -201,9 +214,10 @@ fun WordSettingDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = uiState.favoriteOnly,
+                            checked = editingFavoriteOnly,
                             onCheckedChange = {
-                                onChangeFavoriteOnly(it)
+                                editingFavoriteOnly = !editingFavoriteOnly
+//                                onChangeFavoriteOnly(it)
                             }
                         )
                         Text("お気に入り")
@@ -214,9 +228,10 @@ fun WordSettingDialog(
                     ) {
 
                         Checkbox(
-                            checked = uiState.weakMode,
+                            checked = editingWeakMode,
                             onCheckedChange = {
-                                onChangeWeakMode(it)
+                                editingWeakMode = !editingWeakMode
+//                                onChangeWeakMode(it)
                             }
                         )
 
@@ -241,9 +256,10 @@ fun WordSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "card",
+                            selected = editingStudyMode == "card",
                             onClick = {
-                                onChangeStudyMode("card")
+                                editingStudyMode = "card"
+//                                onChangeStudyMode("card")
                             }
                         )
 
@@ -255,9 +271,10 @@ fun WordSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "quiz",
+                            selected = editingStudyMode == "quiz",
                             onClick = {
-                                onChangeStudyMode("quiz")
+                                editingStudyMode = "quiz"
+//                                onChangeStudyMode("quiz")
                             }
                         )
 
@@ -320,7 +337,12 @@ fun WordSettingDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onSelectedPos(tempSelectedPos)
+                    onApply(
+                        editingPos,
+                        editingWeakMode,
+                        editingFavoriteOnly,
+                        editingStudyMode
+                    )
                     onDismiss()
                 }
             ) {

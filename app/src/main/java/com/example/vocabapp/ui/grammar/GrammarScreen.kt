@@ -1,35 +1,30 @@
 package com.example.vocabapp.ui.grammar
 
 import android.speech.tts.TextToSpeech
-import android.content.SharedPreferences
 
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.ExitTransition
 import androidx.compose.material3.Slider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vocabapp.data.source.GrammarItem
 
+import com.example.vocabapp.data.source.GrammarItem
 import com.example.vocabapp.data.source.grammarList
 import com.example.vocabapp.ui.components.GenericQuizUI
 import com.example.vocabapp.manager.TtsManager
-import com.example.vocabapp.ui.sync.SyncViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun GrammarScreen(
@@ -39,8 +34,9 @@ fun GrammarScreen(
     viewModel: GrammarViewModel
 ) {
 
-    val uiState by
-    viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    val scope = rememberCoroutineScope()
 
     var showSettings by remember {mutableStateOf(false)}
 
@@ -72,22 +68,6 @@ fun GrammarScreen(
                 contentDescription = "設定"
             )
         }
-    }
-
-    if (showSettings) {
-        GrammarSettingDialog(
-            uiState = uiState,
-            themeList = themes,
-            updateTheme = {
-                viewModel.setTheme(it)
-            },
-            updateStudyMode = {
-                viewModel.setStudyMode(it)
-            },
-            onDismiss = {
-                showSettings = false
-            }
-        )
     }
 
     // ✅ 共通出題リスト
@@ -176,11 +156,32 @@ fun GrammarScreen(
             // =====================
 
             current?.let { currentItem ->
-                Text(currentItem.vietnamese, fontSize = 26.sp)
+                Box(
+                    modifier = Modifier
+                        .height(100.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = currentItem.vietnamese,
+                            fontSize = 26.sp,
+                            lineHeight = 30.sp
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Text(
+                            text = currentItem.pattern,
+                            fontSize = 18.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(8.dp))
-
-                Text(currentItem.pattern, fontSize = 18.sp, color = Color.Gray)
 
                 Box(
                     modifier = Modifier
@@ -191,11 +192,18 @@ fun GrammarScreen(
                     androidx.compose.animation.AnimatedVisibility(
                         visible = showAnswer,
                         enter = fadeIn() + slideInVertically { 20 },
-                        exit = fadeOut() + slideOutVertically { 20 }
+                        exit = ExitTransition.None
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(currentItem.memo, fontSize = 16.sp, color = Color.Gray)
-                            Text(currentItem.japanese, fontSize = 20.sp)
+                            Text(
+                                text = currentItem.memo,
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = currentItem.japanese,
+                                fontSize = 20.sp
+                            )
                         }
                     }
                 }
@@ -212,7 +220,7 @@ fun GrammarScreen(
                     },
                     modifier = Modifier.width(120.dp).height(45.dp)
                 ) {
-                    Text("🔊 発音", fontSize = 16.sp)
+                    Text("🔊 発話", fontSize = 16.sp)
                 }
 
                 Button(
@@ -267,8 +275,14 @@ fun GrammarScreen(
             // ✅ 次へボタン（統一ロジック）
             Button(
                 onClick = {
-                    showAnswer = false
-                    next()
+                    scope.launch {
+                        showAnswer = false
+
+                        // 日本語を消した状態を1フレーム描画
+                        withFrameNanos { }
+
+                        next()
+                    }
                 },
                 modifier = Modifier.width(100.dp).height(50.dp)
             ) {
@@ -276,6 +290,28 @@ fun GrammarScreen(
             }
             }
         }
+    }
+
+    //
+    // ✅ 設定ダイアログ
+    //
+    if (showSettings) {
+        GrammarSettingDialog(
+            uiState = uiState,
+            themeList = themes,
+            onApply = {
+                    theme,
+                    studyMode ->
+
+                viewModel.applySettings(
+                    theme,
+                    studyMode
+                )
+            },
+            onDismiss = {
+                showSettings = false
+            }
+        )
     }
 }
 

@@ -1,10 +1,6 @@
 package com.example.vocabapp.ui.chunk
 
-import android.content.SharedPreferences
 import android.speech.tts.TextToSpeech
-import android.util.Log
-
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +31,7 @@ import com.example.vocabapp.R
 import com.example.vocabapp.util.playSound
 import com.example.vocabapp.ui.components.SwipeCard
 import com.example.vocabapp.ui.components.GenericQuizUI
+import android.util.Log
 
 @Composable
 fun ChunkScreen(
@@ -233,7 +230,7 @@ fun ChunkScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.TopCenter
                             ) {
 
                                 Text(
@@ -334,21 +331,22 @@ fun ChunkScreen(
             soundEnabled = soundEnabled,
             soundVolume = soundVolume,
             uiState = uiState,
-            onChangeWeakMode = {
-                viewModel.setWeakMode(it)
-            },
-            onChangeStudyMode = {
-                viewModel.setStudyMode(it)
+            onApply = {
+                      category,
+                      difficulty,
+                      weakMode,
+                      studyMode ->
+
+                viewModel.applySettings(
+                    category,
+                    difficulty,
+                    weakMode,
+                    studyMode
+                )
+                completedLap = false
             },
             onRebuildDeck = {
                 viewModel.rebuildDeck()
-                completedLap = false
-            },
-            onApply = { category, difficulty ->
-                viewModel.applyFilter(
-                    category,
-                    difficulty
-                )
                 completedLap = false
             },
             onDismiss = {

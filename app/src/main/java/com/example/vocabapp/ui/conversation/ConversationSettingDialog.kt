@@ -12,20 +12,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 
 import com.example.vocabapp.ui.components.SingleSelectDropdown
+import com.example.vocabapp.data.source.conversationList
 
 @Composable
 fun ComversationSettingDialog(
     uiState: ConversationUiState,
     themeList: List<String>,
-    partList: List<String>,
-    updateTheme: (String) -> Unit,
-    updatePart: (String) -> Unit,
-    updateStudyMode: (String) -> Unit,
+//    partList: List<String>,
+    onApply: (String, String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    var editingTheme by remember(uiState.selectedTheme) {
+        mutableStateOf(uiState.selectedTheme)
+    }
+
+    var editingPart by remember(uiState.selectedPart) {
+        mutableStateOf(uiState.selectedPart)
+    }
+
+    var editingStudyMode by remember(uiState.studyMode) {
+        mutableStateOf(uiState.studyMode)
+    }
+
+    val editingPartList =
+        remember(editingTheme) {
+            listOf("全部") +
+                    conversationList
+                        .filter {
+                            it.theme == editingTheme
+                        }
+                        .map {
+                            it.part
+                        }
+                        .distinct()
+        }
+
     AlertDialog(
         onDismissRequest = onDismiss,
 
@@ -43,10 +71,12 @@ fun ComversationSettingDialog(
 
                 SingleSelectDropdown(
                     title = "テーマ",
-                    selected = uiState.selectedTheme,
+                    selected = editingTheme,
                     items = themeList,
                     onSelect = { selectedTheme ->
-                        updateTheme(selectedTheme)
+                        editingTheme = selectedTheme
+                        editingPart = "全部"
+
                     }
                 )
 
@@ -56,10 +86,10 @@ fun ComversationSettingDialog(
 
                 SingleSelectDropdown(
                     title = "パート",
-                    selected = uiState.selectedPart,
-                    items = partList,
+                    selected = editingPart,
+                    items = editingPartList,
                     onSelect = { selectedPart ->
-                        updatePart(selectedPart)
+                        editingPart = selectedPart
                     }
                 )
 
@@ -78,9 +108,9 @@ fun ComversationSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "card",
+                            selected = editingStudyMode == "card",
                             onClick = {
-                                updateStudyMode("card")
+                                editingStudyMode = "card"
                             }
                         )
 
@@ -92,9 +122,9 @@ fun ComversationSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "quiz",
+                            selected = editingStudyMode == "quiz",
                             onClick = {
-                                updateStudyMode("quiz")
+                                editingStudyMode = "quiz"
                             }
                         )
 
@@ -108,6 +138,11 @@ fun ComversationSettingDialog(
 
             Button(
                 onClick = {
+                    onApply(
+                        editingTheme,
+                        editingPart,
+                        editingStudyMode
+                    )
                     onDismiss()
                 }
             ) {

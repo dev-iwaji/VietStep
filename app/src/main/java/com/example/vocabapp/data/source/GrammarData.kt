@@ -431,7 +431,7 @@ val grammarList = listOf(
         "〜しに来る"
     ),
     GrammarItem(
-        "Anh ấy đi mua sách.",
+        "Chị ấy đến gặp tôi.",
         "彼女は私に会いに来ます",
         "連続動詞",
         "đến + 動詞",
@@ -452,7 +452,7 @@ val grammarList = listOf(
         "帰って〜する"
     ),
     GrammarItem(
-        "Anh ấy về ăn cơm.",
+        "Chị ấy về ăn cơm.",
         "彼女は帰って食事をします",
         "連続動詞",
         "về + 動詞",
@@ -575,7 +575,7 @@ val grammarList = listOf(
         "～は誰ですか？"
     ),
     GrammarItem(
-        "Chị ấy giáo đó là ai?",
+        "Chị giáo đó là ai?",
         "あの先生は誰ですか？",
         "疑問詞",
         "〜 là ai?",
@@ -786,7 +786,7 @@ val grammarList = listOf(
     ),
     GrammarItem(
         "Tôi đợi bao lâu?",
-        "私はどのくらい待ちますか？",
+        "私はどれくらい待てばいいですか？",
         "疑問詞",
         "bao lâu?",
         "どのくらいですか？（時間）"
@@ -813,7 +813,7 @@ val grammarList = listOf(
         "どれくらいですか？（時間）"
     ),
     GrammarItem(
-        "Bạn àm việc bao nhiêu giờ?",
+        "Bạn việc bao nhiêu giờ?",
         "あなたは何時間働いていますか？",
         "疑問詞",
         "bao nhiêu tiền?",
@@ -919,7 +919,7 @@ val grammarList = listOf(
     ),
     GrammarItem(
         "Chị ấy chọn quán nào để ăn trưa?",
-        "彼女は昼ごはんにどの店を選びますか？",
+        "彼女は昼ごはんを食べるのにどの店を選びますか？",
         "疑問詞",
         "場所 + nào?",
         "どの場所？"
@@ -933,7 +933,7 @@ val grammarList = listOf(
     ),
     GrammarItem(
         "Anh ấy muốn gặp ai nào?",
-        "彼はどの人に会いたいですか？",
+        "彼は誰に会いたいですか？",
         "疑問詞",
         "人 + nào?",
         "どの人？"
@@ -1805,8 +1805,8 @@ val grammarList = listOf(
         "〜は必要ない"
     ),
     GrammarItem(
-        "Tôi không cần chờ tôi.",
-        "私を待つ必要はありません",
+        "Bạn không cần chờ tôi.",
+        "あなたは私を待つ必要はありません",
         "助動詞",
         "không cần + 動詞",
         "〜は必要ない"
@@ -2687,7 +2687,7 @@ val grammarList = listOf(
     ),
     GrammarItem(
         "Anh ấy bị quên.",
-        "彼は忘れられてしまいました",
+        "彼は忘れられました",
         "受動態・使役",
         "bị + 動詞",
         "〜されてしまう・被害を受ける"
@@ -2743,7 +2743,7 @@ val grammarList = listOf(
     ),
     GrammarItem(
         "Tôi được trả tiền",
-        "私はお金を払ってもらいます",
+        "私はお金を受け取ります",
         "受動態・使役",
         "được + 動詞",
         "〜してもらう・利益を受ける"
@@ -2778,7 +2778,7 @@ val grammarList = listOf(
     ),
     GrammarItem(
         "Bạn không được tin.",
-        "あなたは信じてもらえませんでした",
+        "あなたは信じてもらえません",
         "受動態・使役",
         "không được + 動詞",
         "〜してもらえなかった"

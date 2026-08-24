@@ -48,8 +48,6 @@ class MainRepository (
                 volume
             )
             .apply()
-
-        firebaseRepository.saveMainSoundVolume(volume)
     }
 
     fun loadDarkMode(): Boolean {
@@ -66,7 +64,5 @@ class MainRepository (
                 enabled
             )
             .apply()
-
-        firebaseRepository.saveMainDarkMode(enabled)
     }
 }

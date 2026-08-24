@@ -48,25 +48,29 @@ class GrammarViewModel : ViewModel() {
         }
     }
 
-    fun setTheme(theme: String) {
+    fun applySettings(
+        theme: String,
+        studyMode: String
+    ) {
+        _uiState.update {
+            it.copy(
+                studyMode = studyMode
+            )
+        }
+
+        val current = _uiState.value
+
+        if (
+            theme == current.selectedTheme
+        ) {
+            return
+        }
+
         repository.saveSelectedTheme(theme)
 
         _uiState.update {
-
             it.copy(
                 selectedTheme = theme
-            )
-        }
-    }
-
-    fun setStudyMode(
-        mode: String
-    ) {
-
-        _uiState.update {
-
-            it.copy(
-                studyMode = mode
             )
         }
     }

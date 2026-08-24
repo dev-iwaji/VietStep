@@ -20,7 +20,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,27 +42,28 @@ fun ChunkSettingDialog(
     soundEnabled: Boolean,
     soundVolume: Float,
     uiState: ChunkUiState,
-    onChangeWeakMode: (Boolean) -> Unit,
-    onChangeStudyMode: (String) -> Unit,
+//    onChangeWeakMode: (Boolean) -> Unit,
+//    onChangeStudyMode: (String) -> Unit,
+    onApply: (Set<String>, Set<String>, Boolean, String) -> Unit,
     onRebuildDeck: () -> Unit,
-    onApply: (
-        Set<String>,
-        Set<String>
-    ) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
 
     var editingCategory by remember {
-        mutableStateOf(
-            uiState.selectedCategory
-        )
+        mutableStateOf(uiState.selectedCategory)
     }
 
     var editingDifficulty by remember {
-        mutableStateOf(
-            uiState.selectedDifficulty
-        )
+        mutableStateOf(uiState.selectedDifficulty)
+    }
+
+    var editingWeakMode by remember(uiState.weakMode) {
+        mutableStateOf(uiState.weakMode)
+    }
+
+    var editingStudyMode by remember(uiState.studyMode) {
+        mutableStateOf(uiState.studyMode)
     }
 
     val targetCount =
@@ -276,9 +276,10 @@ fun ChunkSettingDialog(
                     ) {
 
                         Checkbox(
-                            checked = uiState.weakMode,
+                            checked = editingWeakMode,
                             onCheckedChange = {
-                                onChangeWeakMode(it)
+                                editingWeakMode = !editingWeakMode
+//                                onChangeWeakMode(it)
                             }
                         )
 
@@ -303,9 +304,10 @@ fun ChunkSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "card",
+                            selected = editingStudyMode == "card",
                             onClick = {
-                                onChangeStudyMode("card")
+                                editingStudyMode = "card"
+//                                onChangeStudyMode("card")
                             }
                         )
 
@@ -317,9 +319,10 @@ fun ChunkSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "quiz",
+                            selected = editingStudyMode == "quiz",
                             onClick = {
-                                onChangeStudyMode("quiz")
+                                editingStudyMode = "quiz"
+//                                onChangeStudyMode("quiz")
                             }
                         )
 
@@ -335,7 +338,9 @@ fun ChunkSettingDialog(
                 onClick = {
                     onApply(
                         editingCategory,
-                        editingDifficulty
+                        editingDifficulty,
+                        editingWeakMode,
+                        editingStudyMode
                     )
                     onDismiss()
                 }

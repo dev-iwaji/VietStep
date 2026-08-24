@@ -20,6 +20,7 @@ class FirebaseRepository {
         FirebaseAuth.getInstance()
 
     private val _authState = MutableStateFlow(auth.currentUser)
+
     val authState = _authState.asStateFlow()
 
     private val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
@@ -38,67 +39,6 @@ class FirebaseRepository {
         FirebaseAuth
             .getInstance()
             .signOut()
-    }
-
-    fun saveMainSoundVolume(
-        soundVolume: Float
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("main")
-            .document("soundVolume")
-            .set(
-                mapOf(
-                    "soundVolume" to soundVolume
-                )
-            )
-    }
-
-    suspend fun loadMainSoundVolume(): Float {
-        val uid = getUid() ?: return 0.5f
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("main")
-                .document("soundVolume")
-                .get()
-                .await()
-
-        val volume = snapshot.getDouble("soundVolume") ?: 0.5f
-        return volume.toFloat()
-    }
-
-    fun saveMainDarkMode(
-        enabled: Boolean
-    ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("main")
-            .document("darkMode")
-            .set(
-                mapOf(
-                    "darkMode" to enabled
-                )
-            )
-    }
-
-    suspend fun loadMainDarkMode(): Boolean {
-        val uid = getUid() ?: return false
-
-        val snapshot =
-            db.collection("users")
-                .document(uid)
-                .collection("main")
-                .document("darkMode")
-                .get()
-                .await()
-
-        return snapshot.getBoolean("darkMode") ?: false
     }
 
     suspend fun saveWordLearningState(
@@ -144,6 +84,39 @@ class FirebaseRepository {
                 wordCollection.document("studyHistory"),
                 mapOf(
                     "studyHistory" to studyHistory
+                )
+            )
+
+        }.await()
+    }
+
+    suspend fun saveWordDeckState(
+        deckOrder: String,
+        deckIndex: Int
+    ) {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
+
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("word")
+
+        db.runBatch { batch ->
+
+            batch.set(
+                wordCollection.document("deckOrder"),
+                mapOf(
+                    "deckOrder" to deckOrder
+                )
+            )
+
+            batch.set(
+                wordCollection.document("deckIndex"),
+                mapOf(
+                    "deckIndex" to deckIndex
                 )
             )
 
@@ -477,6 +450,39 @@ class FirebaseRepository {
 
             batch.set(
                 chunkCollection.document("deckIndex"),
+                mapOf(
+                    "deckIndex" to deckIndex
+                )
+            )
+
+        }.await()
+    }
+
+    suspend fun saveChunkDeckState(
+        deckOrder: String,
+        deckIndex: Int
+    ) {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
+
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("chunk")
+
+        db.runBatch { batch ->
+
+            batch.set(
+                wordCollection.document("deckOrder"),
+                mapOf(
+                    "deckOrder" to deckOrder
+                )
+            )
+
+            batch.set(
+                wordCollection.document("deckIndex"),
                 mapOf(
                     "deckIndex" to deckIndex
                 )
@@ -823,22 +829,6 @@ class FirebaseRepository {
             batch.delete(
                 wordCollection.document("studyHistory")
             )
-
-            batch.delete(
-                wordCollection.document("favorites")
-            )
-
-            batch.delete(
-                wordCollection.document("favoriteOnly")
-            )
-
-            batch.delete(
-                wordCollection.document("weakMode")
-            )
-
-            batch.delete(
-                wordCollection.document("filterPos")
-            )
         }.await()
     }
 
@@ -861,52 +851,6 @@ class FirebaseRepository {
 
             batch.delete(
                 chunkCollection.document("deckOrder")
-            )
-
-            batch.delete(
-                chunkCollection.document("weakMode")
-            )
-
-            batch.delete(
-                chunkCollection.document("filterCategory")
-            )
-
-            batch.delete(
-                chunkCollection.document("filterDifficulty")
-            )
-        }.await()
-    }
-
-    suspend fun resetGrammar() {
-        val uid = getUid() ?: return
-
-        val grammarCollection =
-            db.collection("users")
-                .document(uid)
-                .collection("grammar")
-
-        db.runBatch { batch ->
-            batch.delete(
-                grammarCollection.document("theme")
-            )
-        }.await()
-    }
-
-    suspend fun resetConversation() {
-        val uid = getUid() ?: return
-
-        val conversationCollection =
-            db.collection("users")
-                .document(uid)
-                .collection("conversation")
-
-        db.runBatch { batch ->
-            batch.delete(
-                conversationCollection.document("theme")
-            )
-
-            batch.delete(
-                conversationCollection.document("part")
             )
         }.await()
     }

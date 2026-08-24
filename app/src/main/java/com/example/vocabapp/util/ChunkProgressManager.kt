@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken
 
 import com.example.vocabapp.data.model.Chunk
 import com.example.vocabapp.data.model.ChunkProgress
-
 import com.example.vocabapp.data.model.deckKey
 import com.example.vocabapp.data.repository.ChunkRepository
 

@@ -336,7 +336,7 @@ fun WordScreen(
                                     }
                                 }
 
-                                //✅ お気に入り
+                                // ✅ お気に入り
                                 Text(
                                     text = if (uiState.favorites.contains(currentWord.deckKey())) "★" else "☆",
                                     fontSize = 28.sp,
@@ -444,18 +444,20 @@ fun WordScreen(
             soundVolume = soundVolume,
             uiState = uiState,
             launcher = launcher,
+            onApply = {
+                    pos,
+                    weakMode,
+                    favoriteOnly,
+                    studyMode ->
 
-            onChangeWeakMode = {
-                wordViewModel.setWeakMode(it)
-            },
-            onChangeFavoriteOnly = {
-                wordViewModel.setFavoriteOnly(it)
-            },
-            onChangeStudyMode = {
-                wordViewModel.setStudyMode(it)
-            },
-            onSelectedPos = {
-                wordViewModel.setSelectedPos(it)
+                wordViewModel.applySettings(
+                    pos = pos,
+                    weakMode = weakMode,
+                    favoriteOnly = favoriteOnly,
+                    studyMode = studyMode
+                )
+
+                completedLap = false
             },
             onUpdatetDeck = {
                 wordViewModel.rebuildDeck()

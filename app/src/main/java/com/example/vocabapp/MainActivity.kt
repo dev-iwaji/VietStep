@@ -20,19 +20,28 @@ import androidx.compose.ui.unit.dp
 
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vocabapp.ui.auth.AuthViewModel
-import com.example.vocabapp.ui.login.LoginScreen
 import com.example.vocabapp.ui.main.MainScreen
+import com.example.vocabapp.ui.main.MainViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         com.github.mikephil.charting.utils.Utils.init(this)
+
+        val prefs =
+            getSharedPreferences(
+                "app",
+                MODE_PRIVATE
+            )
 
         setContent {
 
@@ -47,21 +56,47 @@ class MainActivity : ComponentActivity() {
                 authViewModel.init()
             }
 
-            if (showSplash) {
-                SplashScreen {
-                    showSplash = false
+            val mainViewModel: MainViewModel =
+                viewModel()
+
+            LaunchedEffect(Unit) {
+                mainViewModel.initialize(prefs)
+                mainViewModel.load()
+            }
+
+            val mainUiState by
+            mainViewModel.uiState.collectAsState()
+
+            MaterialTheme(
+                colorScheme =
+                if (mainUiState.darkMode) {
+                    darkColorScheme()
+                } else {
+                    lightColorScheme()
                 }
-            } else {
-                MainScreen(
-                    authViewModel = authViewModel
-                )
+            ) {
+                if (showSplash) {
+                    SplashScreen (
+                        darkMode = mainUiState.darkMode
+                    ){
+                        showSplash = false
+                    }
+                } else {
+                    MainScreen(
+                        authViewModel = authViewModel,
+                        mainViewModel = mainViewModel
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun SplashScreen(onFinish: () -> Unit) {
+fun SplashScreen(
+    darkMode: Boolean,
+    onFinish: () -> Unit
+) {
     val alpha = remember { Animatable(1f) }
     val scale = remember { Animatable(0.6f) }
 
@@ -94,7 +129,13 @@ fun SplashScreen(onFinish: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(
+                if (darkMode) {
+                    Color.Black
+                } else {
+                    Color.White
+                }
+            ),
         contentAlignment = Alignment.Center
     ) {
 
@@ -105,7 +146,7 @@ fun SplashScreen(onFinish: () -> Unit) {
                 .alpha(alpha.value)
         ) {
             Image(
-                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.splash_logo),
                 contentDescription = null,
                 modifier = Modifier.size(180.dp)  // ← Image 自体には scale をかけない
             )

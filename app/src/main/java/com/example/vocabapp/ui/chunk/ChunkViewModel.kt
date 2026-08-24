@@ -203,33 +203,6 @@ class ChunkViewModel : ViewModel() {
         setDeckIndex(0)
     }
 
-    fun setWeakMode(
-        enabled: Boolean
-    ) {
-        repository.saveWeakMode(enabled)
-
-        _uiState.update {
-
-            it.copy(
-                weakMode = enabled
-            )
-        }
-
-        rebuildDeck()
-    }
-
-    fun setStudyMode(
-        mode: String
-    ) {
-
-        _uiState.update {
-
-            it.copy(
-                studyMode = mode
-            )
-        }
-    }
-
     fun getFilteredChunks(): List<Chunk> {
 
         return uiState.value.chunks
@@ -311,30 +284,47 @@ class ChunkViewModel : ViewModel() {
         saveDeckOrder()
     }
 
-    fun applyFilter(
+    fun applySettings(
         category: Set<String>,
-        difficulty: Set<String>
+        difficulty: Set<String>,
+        weakMode: Boolean,
+        studyMode: String
     ) {
+        _uiState.update {
+            it.copy(
+                studyMode = studyMode
+            )
+        }
+
         val current = _uiState.value
 
         if (
             category == current.selectedCategory &&
-            difficulty == current.selectedDifficulty
+            difficulty == current.selectedDifficulty &&
+            weakMode == current.weakMode
         ) {
             return
         }
 
         repository.saveFilterCategory(category)
         repository.saveFilterDifficulty(difficulty)
+        repository.saveWeakMode(weakMode)
 
         _uiState.update {
             it.copy(
                 selectedCategory = category,
-                selectedDifficulty = difficulty
+                selectedDifficulty = difficulty,
+                weakMode = weakMode
             )
         }
 
+        // ✅ 新しい条件でデッキ再構築
         rebuildDeck()
+
+        // ✅ 再構築後のdeckOrder / deckIndexを即時同期
+        viewModelScope.launch {
+            repository.uploadDeckState()
+        }
     }
 
     fun updateQuizStats(

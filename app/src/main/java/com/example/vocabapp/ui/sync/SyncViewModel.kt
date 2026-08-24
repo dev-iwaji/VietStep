@@ -85,7 +85,7 @@ class SyncViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isSyncing = false,
-                        message = "他端末の学習状態を取得しました"
+                        message = "Firebaseの学習状態を取得しました"
                     )
                 }
 

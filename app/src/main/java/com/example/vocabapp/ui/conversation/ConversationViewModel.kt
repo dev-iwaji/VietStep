@@ -48,36 +48,33 @@ class ConversationViewModel : ViewModel() {
         }
     }
 
-    fun setTheme(theme: String) {
-        repository.saveSelectedTheme(theme)
-
+    fun applySettings(
+        theme: String,
+        part: String,
+        studyMode: String
+    ) {
         _uiState.update {
-
             it.copy(
-                selectedTheme = theme
+                studyMode = studyMode
             )
         }
-    }
 
-    fun setPart(part: String) {
+        val current = _uiState.value
+
+        if (
+            theme == current.selectedTheme &&
+            part == current.selectedPart
+        ) {
+            return
+        }
+
+        repository.saveSelectedTheme(theme)
         repository.saveSelectedPart(part)
 
         _uiState.update {
-
             it.copy(
+                selectedTheme = theme,
                 selectedPart = part
-            )
-        }
-    }
-
-    fun setStudyMode(
-        mode: String
-    ) {
-
-        _uiState.update {
-
-            it.copy(
-                studyMode = mode
             )
         }
     }

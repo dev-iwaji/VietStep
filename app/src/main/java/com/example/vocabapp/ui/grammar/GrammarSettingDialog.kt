@@ -12,6 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 
 import com.example.vocabapp.ui.components.SingleSelectDropdown
@@ -20,15 +24,22 @@ import com.example.vocabapp.ui.components.SingleSelectDropdown
 fun GrammarSettingDialog(
     uiState: GrammarUiState,
     themeList: List<String>,
-    updateTheme: (String) -> Unit,
-    updateStudyMode: (String) -> Unit,
+    onApply: (String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    var editingTheme by remember(uiState.selectedTheme) {
+        mutableStateOf(uiState.selectedTheme)
+    }
+
+    var editingStudyMode by remember(uiState.studyMode) {
+        mutableStateOf(uiState.studyMode)
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
 
         title = {
-            Text("カテゴリ設定")
+            Text("文法設定")
         },
 
         text = {
@@ -41,10 +52,10 @@ fun GrammarSettingDialog(
 
                 SingleSelectDropdown(
                     title = "カテゴリ",
-                    selected = uiState.selectedTheme,
+                    selected = editingTheme,//uiState.selectedTheme,
                     items = themeList,
                     onSelect = { selectedTheme ->
-                        updateTheme(selectedTheme)
+                        editingTheme = selectedTheme
                     }
                 )
 
@@ -63,9 +74,9 @@ fun GrammarSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "card",
+                            selected = editingStudyMode == "card",
                             onClick = {
-                                updateStudyMode("card")
+                                editingStudyMode = "card"
                             }
                         )
 
@@ -77,9 +88,9 @@ fun GrammarSettingDialog(
                     ) {
 
                         RadioButton(
-                            selected = uiState.studyMode == "quiz",
+                            selected = editingStudyMode == "quiz",
                             onClick = {
-                                updateStudyMode("quiz")
+                                editingStudyMode = "quiz"
                             }
                         )
 
@@ -93,6 +104,10 @@ fun GrammarSettingDialog(
 
             Button(
                 onClick = {
+                    onApply(
+                        editingTheme,
+                        editingStudyMode
+                    )
                     onDismiss()
                 }
             ) {

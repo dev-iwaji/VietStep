@@ -4,10 +4,8 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.example.vocabapp.data.model.ChunkLearningState
 import com.example.vocabapp.data.model.ChunkProgress
-import com.example.vocabapp.data.model.DailyStat
 import com.example.vocabapp.utils.PrefKeys
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 
 class ChunkRepository(
     private val prefs: SharedPreferences,
@@ -34,6 +32,15 @@ class ChunkRepository(
             )
         }
 
+    }
+
+    suspend fun uploadDeckState(): Result<Unit> {
+        return runCatching {
+            firebaseRepository.saveChunkDeckState(
+                deckOrder = loadDeckOrder() ?: "[]",
+                deckIndex = loadDeckIndex()
+            )
+        }
     }
 
     fun applyDownloadedLearningState(

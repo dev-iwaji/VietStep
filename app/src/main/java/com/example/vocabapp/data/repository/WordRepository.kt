@@ -2,7 +2,6 @@ package com.example.vocabapp.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.Uri
 import com.example.vocabapp.data.model.CsvFile
 import com.example.vocabapp.data.model.DailyStat
 import com.example.vocabapp.data.model.WordProgress
@@ -67,6 +66,15 @@ class WordRepository(
                 "WordRepository",
                 "学習状態のアップロードに失敗しました",
                 error
+            )
+        }
+    }
+
+    suspend fun uploadDeckState(): Result<Unit> {
+        return runCatching {
+            firebaseRepository.saveWordDeckState(
+                deckOrder = loadDeckOrder() ?: "[]",
+                deckIndex = loadDeckIndex()
             )
         }
     }

@@ -74,6 +74,25 @@ class ChunkRepository(
             .apply()
     }
 
+    fun applyDownloadedLearningConditions(
+        state: ChunkLearningState
+    ) {
+        prefs.edit()
+            .putStringSet(
+                PrefKeys.CHUNK_FILTER_CATEGORY,
+                state.filterCategory
+            )
+            .putStringSet(
+                PrefKeys.CHUNK_FILTER_DIFFICULTY,
+                state.filterDifficulty
+            )
+            .putBoolean(
+                PrefKeys.CHUNK_WEAK_MODE,
+                state.weakMode
+            )
+            .apply()
+    }
+
     fun loadProgress(): String? {
         return prefs.getString(
             PrefKeys.CHUNK_PROGRESS,

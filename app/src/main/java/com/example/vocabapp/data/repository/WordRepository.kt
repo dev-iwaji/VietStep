@@ -118,6 +118,29 @@ class WordRepository(
             .apply()
     }
 
+    fun applyDownloadedLearningConditions(
+        state: WordLearningState
+    ) {
+        prefs.edit()
+            .putStringSet(
+                PrefKeys.WORD_FILTER_POS,
+                state.filterPos
+            )
+            .putStringSet(
+                PrefKeys.WORD_FAVORITES,
+                state.favorites
+            )
+            .putBoolean(
+                PrefKeys.WORD_FAVORITE_ONLY,
+                state.favoriteOnly
+            )
+            .putBoolean(
+                PrefKeys.WORD_WEAK_MODE,
+                state.weakMode
+            )
+            .apply()
+    }
+
     fun addCsvFile(
         fileName: String,
         content: String,

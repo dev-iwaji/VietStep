@@ -31,4 +31,14 @@ class SyncRepository (
             conversationRepository.applyDownloadedLearningState(conversationState)
         }
     }
+
+    suspend fun restoreLearningConditionsAfterReset() {
+        wordRepository.applyDownloadedLearningConditions(
+            firebaseRepository.loadWordLearningState()
+        )
+
+        chunkRepository.applyDownloadedLearningConditions(
+            firebaseRepository.loadChunkLearningState()
+        )
+    }
 }

@@ -42,8 +42,6 @@ fun ChunkSettingDialog(
     soundEnabled: Boolean,
     soundVolume: Float,
     uiState: ChunkUiState,
-//    onChangeWeakMode: (Boolean) -> Unit,
-//    onChangeStudyMode: (String) -> Unit,
     onApply: (Set<String>, Set<String>, Boolean, String) -> Unit,
     onRebuildDeck: () -> Unit,
     onDismiss: () -> Unit
@@ -279,7 +277,6 @@ fun ChunkSettingDialog(
                             checked = editingWeakMode,
                             onCheckedChange = {
                                 editingWeakMode = !editingWeakMode
-//                                onChangeWeakMode(it)
                             }
                         )
 
@@ -307,7 +304,6 @@ fun ChunkSettingDialog(
                             selected = editingStudyMode == "card",
                             onClick = {
                                 editingStudyMode = "card"
-//                                onChangeStudyMode("card")
                             }
                         )
 
@@ -322,7 +318,6 @@ fun ChunkSettingDialog(
                             selected = editingStudyMode == "quiz",
                             onClick = {
                                 editingStudyMode = "quiz"
-//                                onChangeStudyMode("quiz")
                             }
                         )
 

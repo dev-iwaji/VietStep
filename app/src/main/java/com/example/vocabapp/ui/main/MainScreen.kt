@@ -153,6 +153,8 @@ fun MainScreen(
                     prefs = prefs
                 )
 
+                syncRepository.restoreLearningConditionsAfterReset()
+
                 mainViewModel.setLocalResetAT(
                     firebaseResetAT!!
                 )

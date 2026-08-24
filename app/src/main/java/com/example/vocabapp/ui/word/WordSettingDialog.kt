@@ -44,10 +44,6 @@ fun WordSettingDialog(
     soundVolume: Float,
     uiState: WordUiState,
     launcher: ActivityResultLauncher<Array<String>>,
-//    onChangeWeakMode: (Boolean) -> Unit,
-//    onChangeFavoriteOnly: (Boolean) -> Unit,
-//    onChangeStudyMode: (String) -> Unit,
-//    onSelectedPos: (Set<String>) -> Unit,
     onApply: (Set<String>, Boolean, Boolean, String) ->Unit,
     onUpdatetDeck: () -> Unit,
     onToggleCsvFile: (CsvFile) -> Unit,
@@ -78,7 +74,7 @@ fun WordSettingDialog(
         mutableStateOf(uiState.studyMode)
     }
 
-    // シャッフルボタンのアニメーション
+    // ✅ シャッフルボタンのアニメーション
     LaunchedEffect(shake) {
         if (shake) {
             // 一瞬だけ拡大
@@ -88,7 +84,7 @@ fun WordSettingDialog(
             scale = 1f
             rotation = 0f
 
-            // 左右に揺れる
+            // ✅ 左右に揺れる
             repeat(3) {
                 offsetX = (-10).dp
                 delay(50)
@@ -217,7 +213,6 @@ fun WordSettingDialog(
                             checked = editingFavoriteOnly,
                             onCheckedChange = {
                                 editingFavoriteOnly = !editingFavoriteOnly
-//                                onChangeFavoriteOnly(it)
                             }
                         )
                         Text("お気に入り")
@@ -231,7 +226,6 @@ fun WordSettingDialog(
                             checked = editingWeakMode,
                             onCheckedChange = {
                                 editingWeakMode = !editingWeakMode
-//                                onChangeWeakMode(it)
                             }
                         )
 
@@ -259,7 +253,6 @@ fun WordSettingDialog(
                             selected = editingStudyMode == "card",
                             onClick = {
                                 editingStudyMode = "card"
-//                                onChangeStudyMode("card")
                             }
                         )
 
@@ -274,7 +267,6 @@ fun WordSettingDialog(
                             selected = editingStudyMode == "quiz",
                             onClick = {
                                 editingStudyMode = "quiz"
-//                                onChangeStudyMode("quiz")
                             }
                         )
 

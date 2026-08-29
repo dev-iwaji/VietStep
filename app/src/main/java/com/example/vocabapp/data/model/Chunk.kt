@@ -1,7 +1,5 @@
 package com.example.vocabapp.data.model
 
-import androidx.compose.ui.graphics.Color
-
 data class Chunk(
     val category: String,
     val difficulty: String,

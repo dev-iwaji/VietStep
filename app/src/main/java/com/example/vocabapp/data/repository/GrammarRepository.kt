@@ -1,14 +1,26 @@
 package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
+
 import com.example.vocabapp.data.model.GrammarLearningState
 import com.example.vocabapp.utils.PrefKeys
+import com.example.vocabapp.data.model.Grammar
+import com.google.gson.Gson
 import android.util.Log
 
 class GrammarRepository(
     private val prefs: SharedPreferences,
     private val firebaseRepository: FirebaseRepository
 ) {
+
+    suspend fun uploadDeckState(): Result<Unit> {
+        return runCatching {
+            firebaseRepository.saveGrammarDeckState(
+                deckOrder = loadDeckOrder() ?: "[]",
+                deckIndex = loadDeckIndex()
+            )
+        }
+    }
 
     fun applyDownloadedLearningState(
         state: GrammarLearningState
@@ -17,6 +29,61 @@ class GrammarRepository(
             .putString(
                 PrefKeys.GRAMMAR_THEME,
                 state.theme
+            )
+            .putString(
+                PrefKeys.GRAMMAR_DECK_ORDER,
+                state.deckOrder
+            )
+            .putInt(
+                PrefKeys.GRAMMAR_DECK_INDEX,
+                state.deckIndex
+            )
+            .apply()
+    }
+
+    fun loadDeckIndex(): Int {
+        return prefs.getInt(
+            PrefKeys.GRAMMAR_DECK_INDEX,
+            0
+        )
+    }
+
+    fun saveDeckIndex(index: Int) {
+        prefs.edit()
+            .putInt(PrefKeys.GRAMMAR_DECK_INDEX, index)
+            .apply()
+    }
+
+    fun loadDeckOrder(): String? {
+        return prefs.getString(
+            PrefKeys.GRAMMAR_DECK_ORDER,
+            null
+        )
+    }
+
+    fun loadDeck(): List<Grammar> {
+
+        val json =
+            loadDeckOrder()
+                ?: return emptyList()
+
+        return try {
+            Gson().fromJson(
+                json,
+                Array<Grammar>::class.java
+            ).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    fun saveDeckOrder(
+        deck: List<Grammar>
+    ) {
+        prefs.edit()
+            .putString(
+                PrefKeys.GRAMMAR_DECK_ORDER,
+                Gson().toJson(deck)
             )
             .apply()
     }

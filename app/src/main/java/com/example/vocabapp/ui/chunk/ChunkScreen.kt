@@ -52,7 +52,7 @@ fun ChunkScreen(
     val targetChunks = viewModel.getFilteredChunks()
 
     // ✅ 現在のチャンク
-    val currentChunk = uiState.deck.getOrNull(uiState.deckIndex) ?: return
+    val currentChunk = uiState.deck.getOrNull(uiState.deckIndex)// ?: return
 
     // ✅ 学習モード（カード or クイズ）
     var showAnswer by remember { mutableStateOf(false) }
@@ -65,10 +65,12 @@ fun ChunkScreen(
         verticalAlignment = Alignment.CenterVertically
     ) {
 
+        var categoryText = ""
+        if (currentChunk != null )
+            categoryText = " > ${currentChunk.difficulty?: ""}" + " > ${currentChunk.category?: ""}"
+
         Text(
-            "  チャンク" +
-            " > ${currentChunk.difficulty?: ""}" +
-            " > ${currentChunk.category?: ""}",
+            "  チャンク" + categoryText,
             fontSize = 16.sp,
             color = Color.Gray
         )
@@ -94,231 +96,261 @@ fun ChunkScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // ✅ 進捗計算
-        val progress =
-            if (uiState.deck.isEmpty()) 0f
-            else (uiState.deckIndex + 1).toFloat() / uiState.deck.size.toFloat()
+        when {
 
-        // ✅ アニメーション
-        val animatedProgress by animateFloatAsState(
-            targetValue = progress,
-            label = ""
-        )
+            currentChunk == null -> {
+                Spacer(Modifier.height(20.dp))
 
-        // ✅ 色変化
-        val progressColor = when {
-            progress < 0.3f -> Color.Red
-            progress < 0.7f -> Color(0xFFFFC107)
-            else -> Color(0xFF4CAF50)
-        }
+                Text(
+                    "❗ 条件に一致する文型がありません",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        // ✅ プログレスバー
-        LinearProgressIndicator(
-            progress = animatedProgress,
-            color = progressColor,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-        )
+                Spacer(Modifier.height(16.dp))
 
-        Spacer(Modifier.height(4.dp))
+                Text(
+                    "カテゴリ、重点項目を変更してみてください",
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            else -> {
 
-            // ✅ 左エリア（中央寄せ）
-            Box(
-                modifier = Modifier
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                // ✅ 🎉 1周完了メッセージ
-                if (uiState.deckIndex == 0 && uiState.deck.size > 0 && completedLap) {
-                    Text(
-                        text = "🎉 1周完了！",
-                        color = Color(0xFF4CAF50),
-                        fontSize = 14.sp
-                    )
-                } else {
-                    Spacer(Modifier.height(20.dp))
+                // ✅ 進捗計算
+                val progress =
+                    if (uiState.deck.isEmpty()) 0f
+                    else (uiState.deckIndex + 1).toFloat() / uiState.deck.size.toFloat()
+
+                // ✅ アニメーション
+                val animatedProgress by animateFloatAsState(
+                    targetValue = progress,
+                    label = ""
+                )
+
+                // ✅ 色変化
+                val progressColor = when {
+                    progress < 0.3f -> Color.Red
+                    progress < 0.7f -> Color(0xFFFFC107)
+                    else -> Color(0xFF4CAF50)
                 }
-            }
 
-            // ✅ 右エリア（縦＋右寄せ）
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                // ✅ 数字表示
-                Text("${uiState.deckIndex + 1} / ${uiState.deck.size}", fontSize = 12.sp)
-
-                // ✅ 残り表示
-                Text("残り: ${uiState.deck.size - (uiState.deckIndex + 1)}", fontSize = 12.sp)
-            }
-        }
-
-        if (uiState.studyMode == "card") {
-
-            // =====================
-            // ✅ カードモード
-            // =====================
-
-            currentChunk.let { currentChunk ->
-
-                Spacer(Modifier.height(12.dp))
-
-                Box(
+                // ✅ プログレスバー
+                LinearProgressIndicator(
+                    progress = animatedProgress,
+                    color = progressColor,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(16.dp)
+                        .height(8.dp)
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // ✅ スワイプカード
-                    SwipeCard(
-                        onRight = {
-                            if (soundEnabled) {
-                                playSound(context, R.raw.correct, soundVolume)
-                            }
-
-                            viewModel.answerChunk(currentChunk, true)
-
-                            showAnswer = false
-                            completedLap = true
-                        },
-                        onLeft = {
-                            if (soundEnabled) {
-                                playSound(context, R.raw.wrong, soundVolume)
-                            }
-
-                            viewModel.answerChunk(currentChunk, false)
-
-                            showAnswer = false
-                            completedLap = true
-                        }
+                    // ✅ 左エリア（中央寄せ）
+                    Box(
+                        modifier = Modifier
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Column(
+                        // ✅ 🎉 1周完了メッセージ
+                        if (uiState.deckIndex == 0 && uiState.deck.size > 0 && completedLap) {
+                            Text(
+                                text = "🎉 1周完了！",
+                                color = Color(0xFF4CAF50),
+                                fontSize = 14.sp
+                            )
+                        } else {
+                            Spacer(Modifier.height(20.dp))
+                        }
+                    }
+
+                    // ✅ 右エリア（縦＋右寄せ）
+                    Column(
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        // ✅ 数字表示
+                        Text("${uiState.deckIndex + 1} / ${uiState.deck.size}", fontSize = 12.sp)
+
+                        // ✅ 残り表示
+                        Text(
+                            "残り: ${uiState.deck.size - (uiState.deckIndex + 1)}",
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+
+                if (uiState.studyMode == "card") {
+
+                    // =====================
+                    // ✅ カードモード
+                    // =====================
+
+                    currentChunk.let { currentChunk ->
+
+                        Spacer(Modifier.height(12.dp))
+
+                        Box(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp)
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(16.dp)
                         ) {
 
-                            // ✅ 文型
-                            Text(
-                                text = currentChunk.pattern,
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            )
+                            // ✅ スワイプカード
+                            SwipeCard(
+                                onRight = {
+                                    if (soundEnabled) {
+                                        playSound(context, R.raw.correct, soundVolume)
+                                    }
 
-                            // ✅ 日本語の説明
-                            Text(
-                                text = currentChunk.memo,
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
+                                    viewModel.answerChunk(currentChunk, true)
 
-                            // ✅ 上の説明とベトナム語の間
-                            Spacer(
-                                modifier = Modifier.height(8.dp)
-                            )
+                                    showAnswer = false
+                                    completedLap = true
+                                },
+                                onLeft = {
+                                    if (soundEnabled) {
+                                        playSound(context, R.raw.wrong, soundVolume)
+                                    }
 
-                            // ✅ 残り領域の中央にベトナム語
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                contentAlignment = Alignment.TopCenter
+                                    viewModel.answerChunk(currentChunk, false)
+
+                                    showAnswer = false
+                                    completedLap = true
+                                }
                             ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(12.dp)
+                                ) {
 
-                                Text(
-                                    text = currentChunk.vietnamese,
-                                    fontSize = 32.sp,
-                                    lineHeight = 38.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2
-                                )
+                                    // ✅ 文型
+                                    Text(
+                                        text = currentChunk.pattern,
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
+                                    )
+
+                                    // ✅ 日本語の説明
+                                    Text(
+                                        text = currentChunk.memo,
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+
+                                    // ✅ 上の説明とベトナム語の間
+                                    Spacer(
+                                        modifier = Modifier.height(8.dp)
+                                    )
+
+                                    // ✅ 残り領域の中央にベトナム語
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f),
+                                        contentAlignment = Alignment.TopCenter
+                                    ) {
+
+                                        Text(
+                                            text = currentChunk.vietnamese,
+                                            fontSize = 32.sp,
+                                            lineHeight = 38.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 2
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
 
-            Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(4.dp))
 
-            // ✅ 下テキスト
-            Text(
-                "← 未習得　　覚えた →",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // ✅ 発音
-                Button(
-                    onClick = {
-                        tts?.speak(
-                            currentChunk.vietnamese,
-                            TextToSpeech.QUEUE_FLUSH,
-                            null,
-                            null
-                        )
-                    },
-                    modifier = Modifier.width(120.dp).height(50.dp)
-                ) {
-                    Text("🔊 発音", fontSize = 18.sp)
-                }
-
-                // ✅ 表示切替
-                Button(
-                    onClick = { showAnswer = !showAnswer },
-                    modifier = Modifier.width(120.dp).height(50.dp)
-                ) {
+                    // ✅ 下テキスト
                     Text(
-                        if (showAnswer) "隠す" else "日本語",
-                        fontSize = 18.sp
+                        "← 未習得　　覚えた →",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // ✅ 発音
+                        Button(
+                            onClick = {
+                                tts?.speak(
+                                    currentChunk.vietnamese,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    null
+                                )
+                            },
+                            modifier = Modifier.width(120.dp).height(50.dp)
+                        ) {
+                            Text("🔊 発音", fontSize = 18.sp)
+                        }
+
+                        // ✅ 表示切替
+                        Button(
+                            onClick = { showAnswer = !showAnswer },
+                            modifier = Modifier.width(120.dp).height(50.dp)
+                        ) {
+                            Text(
+                                if (showAnswer) "隠す" else "日本語",
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // ✅ 日本語表示
+                    if (showAnswer) {
+                        Text(currentChunk.japanese, fontSize = 28.sp)
+                    }
+                } else {
+
+                    // =====================
+                    // ✅ クイズモード
+                    // =====================
+
+                    GenericQuizUI(
+                        soundEnabled = soundEnabled,
+                        soundVolume = soundVolume,
+                        question = currentChunk.vietnamese,
+                        correctAnswer = currentChunk.japanese,
+                        allOptions = targetChunks.map { it.japanese },
+
+                        quizStats = uiState.quizStats,
+                        onQuizResult = { correct ->
+                            viewModel.updateQuizStats(
+                                correct
+                            )
+                        },
+                        onAnswer = { correct ->
+                            // ✅ 学習データ更新
+                            viewModel.answerChunk(currentChunk, correct)
+                        }
                     )
                 }
             }
-
-            Spacer(Modifier.height(12.dp))
-
-            // ✅ 日本語表示
-            if (showAnswer) {
-                Text(currentChunk.japanese, fontSize = 28.sp)
-            }
-        } else {
-
-            // =====================
-            // ✅ クイズモード
-            // =====================
-
-            GenericQuizUI(
-                soundEnabled = soundEnabled,
-                soundVolume = soundVolume,
-                question = currentChunk.vietnamese,
-                correctAnswer = currentChunk.japanese,
-                allOptions = targetChunks.map { it.japanese },
-
-                quizStats = uiState.quizStats,
-                onQuizResult = { correct ->
-                    viewModel.updateQuizStats(
-                        correct
-                    )
-                },
-                onAnswer = { correct ->
-                    // ✅ 学習データ更新
-                    viewModel.answerChunk(currentChunk, correct)
-                }
-            )
         }
     }
 

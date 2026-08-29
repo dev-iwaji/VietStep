@@ -2,6 +2,7 @@ package com.example.vocabapp.domain
 
 import com.example.vocabapp.data.model.Word
 import com.example.vocabapp.data.model.Chunk
+import com.example.vocabapp.data.model.Grammar
 
 fun generateWordDeck(words: List<Word>): MutableList<Word> {
 
@@ -27,6 +28,7 @@ fun generateWordDeck(words: List<Word>): MutableList<Word> {
 
     return selected.shuffled().toMutableList()
 }
+
 fun generateChunkDeck(chunks: List<Chunk>): MutableList<Chunk> {
 
     val lv1 = chunks.filter { it.level == 1 }
@@ -50,4 +52,30 @@ fun generateChunkDeck(chunks: List<Chunk>): MutableList<Chunk> {
     selected += pick(lv1, 0.2f)
 
     return selected.shuffled().toMutableList()
+}
+
+fun generateGrammarDeck(
+    items: List<Grammar>,
+    previousDeck: List<Grammar> = emptyList()
+): MutableList<Grammar> {
+
+    return items
+        .groupBy { it.pattern }
+        .map { (pattern, examples) ->
+
+            val previous =
+                previousDeck.firstOrNull {
+                    it.pattern == pattern
+                }
+
+            val candidates =
+                if (examples.size > 1 && previous != null) {
+                    examples.filter { it != previous }
+                } else {
+                    examples
+                }
+
+            candidates.random()
+        }
+        .toMutableList()
 }

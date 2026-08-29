@@ -28,11 +28,14 @@ object PrefKeys {
     const val CHUNK_WEAK_MODE = "chunk_weak_mode"
 
     // Grammar
+    const val GRAMMAR_DECK_INDEX = "grammar_deck_index"
+    const val GRAMMAR_DECK_ORDER = "grammar_deck_order"
     const val GRAMMAR_THEME = "grammar_theme"
     const val GRAMMAR_SPEECH_RATE = "grammar_speech_rate"
 
 
     // Conversation
+    const val CONVERSATION_DECK_INDEX = "conversation_deck_index"
     const val CONVERSATION_THEME = "conversation_theme"
     const val CONVERSATION_PART = "conversation_part"
     const val CONVERSATION_SPEECH_RATE = "conversation_speech_rate"

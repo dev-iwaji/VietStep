@@ -567,7 +567,6 @@ class FirebaseRepository {
                     0
                 },
 
-
             filterDifficulty =
                 if (filterDifficultySnapshot.exists()) {
                     filterDifficultySnapshot
@@ -644,6 +643,39 @@ class FirebaseRepository {
             )
     }
 
+    suspend fun saveGrammarDeckState(
+        deckOrder: String,
+        deckIndex: Int
+    ) {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
+
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("grammar")
+
+        db.runBatch { batch ->
+
+            batch.set(
+                wordCollection.document("deckOrder"),
+                mapOf(
+                    "deckOrder" to deckOrder
+                )
+            )
+
+            batch.set(
+                wordCollection.document("deckIndex"),
+                mapOf(
+                    "deckIndex" to deckIndex
+                )
+            )
+
+        }.await()
+    }
+
     suspend fun loadGrammarLearningState(): GrammarLearningState {
         val uid = getUid()
             ?: throw IllegalStateException(
@@ -661,6 +693,18 @@ class FirebaseRepository {
                 .get()
                 .await()
 
+        val deckOrderSnapshot =
+            grammarCollection
+                .document("deckOrder")
+                .get()
+                .await()
+
+        val deckIndexSnapshot =
+            grammarCollection
+                .document("deckIndex")
+                .get()
+                .await()
+
         return GrammarLearningState(
             theme =
                 if (themeSnapshot.exists()) {
@@ -670,6 +714,25 @@ class FirebaseRepository {
                 } else {
                     "基本形"
                 },
+
+            deckOrder =
+            if (deckOrderSnapshot.exists()) {
+                deckOrderSnapshot
+                    .getString("deckOrder")
+                    ?: "[]"
+            } else {
+                "[]"
+            },
+
+            deckIndex =
+            if (deckIndexSnapshot.exists()) {
+                deckIndexSnapshot
+                    .getLong("deckIndex")
+                    ?.toInt()
+                    ?: 0
+            } else {
+                0
+            },
         )
     }
 
@@ -687,6 +750,31 @@ class FirebaseRepository {
                     "theme" to theme
                 )
             )
+    }
+
+    suspend fun saveConversationDeckState(
+        deckIndex: Int
+    ) {
+        val uid = getUid()
+            ?: throw IllegalStateException(
+                "Firebaseにログインしていません"
+            )
+
+        val wordCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("conversation")
+
+        db.runBatch { batch ->
+
+            batch.set(
+                wordCollection.document("deckIndex"),
+                mapOf(
+                    "deckIndex" to deckIndex
+                )
+            )
+
+        }.await()
     }
 
     suspend fun loadConversationLearningState(): ConversationLearningState {
@@ -712,6 +800,12 @@ class FirebaseRepository {
                 .get()
                 .await()
 
+        val deckIndexSnapshot =
+            conversationCollection
+                .document("deckIndex")
+                .get()
+                .await()
+
         return ConversationLearningState(
             theme =
             if (themeSnapshot.exists()) {
@@ -729,6 +823,16 @@ class FirebaseRepository {
                     ?: "全部"
             } else {
                 "全部"
+            },
+
+            deckIndex =
+            if (deckIndexSnapshot.exists()) {
+                deckIndexSnapshot
+                    .getLong("deckIndex")
+                    ?.toInt()
+                    ?: 0
+            } else {
+                0
             },
         )
     }
@@ -761,6 +865,22 @@ class FirebaseRepository {
             .set(
                 mapOf(
                     "part" to part
+                )
+            )
+    }
+
+    fun saveConversationDeckIndex(
+        index: Int
+    ) {
+        val uid = getUid() ?: return
+
+        db.collection("users")
+            .document(uid)
+            .collection("conversation")
+            .document("deckIndex")
+            .set(
+                mapOf(
+                    "deckIndex" to index
                 )
             )
     }
@@ -851,6 +971,40 @@ class FirebaseRepository {
 
             batch.delete(
                 chunkCollection.document("deckOrder")
+            )
+        }.await()
+    }
+
+    suspend fun resetGrammar() {
+        val uid = getUid() ?: return
+
+        val chunkCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("grammar")
+
+        db.runBatch { batch ->
+            batch.delete(
+                chunkCollection.document("deckIndex")
+            )
+
+            batch.delete(
+                chunkCollection.document("deckOrder")
+            )
+        }.await()
+    }
+
+    suspend fun resetConversation() {
+        val uid = getUid() ?: return
+
+        val chunkCollection =
+            db.collection("users")
+                .document(uid)
+                .collection("conversation")
+
+        db.runBatch { batch ->
+            batch.delete(
+                chunkCollection.document("deckIndex")
             )
         }.await()
     }

@@ -153,7 +153,7 @@ fun WordScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    "フィルターを変更してみてください",
+                    "品詞フィルター、重点項目を変更してみてください",
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()

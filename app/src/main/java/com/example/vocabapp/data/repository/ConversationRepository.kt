@@ -2,14 +2,21 @@ package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
 import com.example.vocabapp.utils.PrefKeys
-import android.util.Log
 import com.example.vocabapp.data.model.ConversationLearningState
-import com.example.vocabapp.data.model.GrammarLearningState
+import android.util.Log
 
 class ConversationRepository(
     private val prefs: SharedPreferences,
     private val firebaseRepository: FirebaseRepository
 ) {
+
+    suspend fun uploadDeckState(): Result<Unit> {
+        return runCatching {
+            firebaseRepository.saveConversationDeckState(
+                deckIndex = loadDeckIndex()
+            )
+        }
+    }
 
     fun applyDownloadedLearningState(
         state: ConversationLearningState
@@ -23,6 +30,23 @@ class ConversationRepository(
                 PrefKeys.CONVERSATION_PART,
                 state.part
             )
+            .putInt(
+                PrefKeys.CONVERSATION_DECK_INDEX,
+                state.deckIndex
+            )
+            .apply()
+    }
+
+    fun loadDeckIndex(): Int {
+        return prefs.getInt(
+            PrefKeys.CONVERSATION_DECK_INDEX,
+            0
+        )
+    }
+
+    fun saveDeckIndex(index: Int) {
+        prefs.edit()
+            .putInt(PrefKeys.CONVERSATION_DECK_INDEX, index)
             .apply()
     }
 

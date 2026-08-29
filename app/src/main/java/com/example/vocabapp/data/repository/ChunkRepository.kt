@@ -1,11 +1,12 @@
 package com.example.vocabapp.data.repository
 
+import com.google.gson.Gson
 import android.content.SharedPreferences
 import android.util.Log
+
 import com.example.vocabapp.data.model.ChunkLearningState
 import com.example.vocabapp.data.model.ChunkProgress
 import com.example.vocabapp.utils.PrefKeys
-import com.google.gson.Gson
 
 class ChunkRepository(
     private val prefs: SharedPreferences,

@@ -1,10 +1,20 @@
 package com.example.vocabapp.ui.word
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+import android.util.Log
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.example.vocabapp.data.model.CsvFile
 import com.example.vocabapp.data.model.Word
 import com.example.vocabapp.data.model.deckKey
@@ -12,20 +22,11 @@ import com.example.vocabapp.data.source.baseWords
 import com.example.vocabapp.domain.generateWordDeck
 import com.example.vocabapp.domain.updateWord
 import com.example.vocabapp.data.model.DailyStat
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.WordRepository
 import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.util.saveWordProgress
 import com.example.vocabapp.util.loadWordProgress
-import kotlinx.coroutines.launch
-import android.util.Log
-import kotlinx.coroutines.Job
 
 class WordViewModel : ViewModel() {
 
@@ -50,6 +51,8 @@ class WordViewModel : ViewModel() {
 
     val uiState =
         _uiState.asStateFlow()
+
+    private var deckDirty = false
 
     private var uploadJob: Job? = null
 
@@ -106,7 +109,7 @@ class WordViewModel : ViewModel() {
             }
         }
 
-        rebuildDeck()
+        rebuildDeck(markDirty = false)
     }
 
     fun uploadLearningStateIfDirty() {
@@ -115,7 +118,7 @@ class WordViewModel : ViewModel() {
             return
         }
 
-        if (!uiState.value.dirty) {
+        if (!deckDirty) {
             return
         }
 
@@ -142,11 +145,7 @@ class WordViewModel : ViewModel() {
                         learningRevision ==
                         revisionAtUpload
                     ) {
-                        _uiState.update {
-                            it.copy(
-                                dirty = false
-                            )
-                        }
+                        deckDirty = false
                     }
 
                     Log.d(
@@ -170,7 +169,9 @@ class WordViewModel : ViewModel() {
             }
     }
 
-    fun rebuildDeck() {
+    fun rebuildDeck(
+        markDirty: Boolean = true
+    ) {
 
         val words = getFilteredWords()
 
@@ -180,6 +181,8 @@ class WordViewModel : ViewModel() {
                 deck = generateWordDeck(words),
             )
         }
+
+        deckDirty = markDirty
 
         saveDeckOrder()
         setDeckIndex(0)
@@ -410,9 +413,10 @@ class WordViewModel : ViewModel() {
 
             it.copy(
                 words = updatedWords,
-                dirty = true
             )
         }
+        deckDirty = true
+        learningRevision++
 
         nextCard()
 
@@ -507,32 +511,48 @@ class WordViewModel : ViewModel() {
     }
 
     private fun nextCard() {
-        val currentIndex = uiState.value.deckIndex
-        val lastIndex = uiState.value.deck.lastIndex
 
-        if (lastIndex < 0) {
-            return
-        }
+        val state = _uiState.value
 
-        /*
-         * 回答したカードが最後のカードなら、
-         * これでデッキを1周したことになる。
-         */
-        val completedRound =
-            currentIndex == lastIndex
+        if (state.deck.isEmpty()) return
 
-        val nextIndex =
-            if (completedRound) {
-                0
+        if (state.deckIndex < state.deck.lastIndex) {
+
+            setDeckIndex(state.deckIndex + 1)
+
+        } else {
+
+            // ✅ 1周終了
+            if (state.weakMode) {
+                refreshWeakDeck()
             } else {
-                currentIndex + 1
+                setDeckIndex(0)
             }
 
-        setDeckIndex(nextIndex)
-
-        if (completedRound) {
             uploadLearningStateIfDirty()
         }
+    }
+
+    private fun refreshWeakDeck() {
+
+        val weakWordMap = getFilteredWords()
+            .associateBy { it.vietnamese }
+
+        val newDeck = uiState.value.deck
+            .mapNotNull { deckWord ->
+                weakWordMap[deckWord.vietnamese]
+            }
+            .toMutableList()
+
+        _uiState.update {
+            it.copy(
+                deck = newDeck,
+                deckIndex = 0
+            )
+        }
+
+        saveDeckOrder()
+        repository.saveDeckIndex(0)
     }
 
     private fun saveDeckOrder() {

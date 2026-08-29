@@ -182,7 +182,9 @@ fun MainScreen(
     DisposableEffect(
         lifecycleOwner,
         wordViewModel,
-        chunkViewModel
+        chunkViewModel,
+        grammarViewModel,
+        conversationViewModel
     ) {
         val observer =
             LifecycleEventObserver { _, event ->
@@ -190,6 +192,8 @@ fun MainScreen(
                 if (event == Lifecycle.Event.ON_STOP) {
                     wordViewModel.uploadLearningStateIfDirty()
                     chunkViewModel.uploadLearningStateIfDirty()
+                    grammarViewModel.uploadDeckStateIfDirty()
+                    conversationViewModel.uploadDeckStateIfDirty()
                 }
             }
 
@@ -235,6 +239,14 @@ fun MainScreen(
 
             1 -> {
                 chunkViewModel.uploadLearningStateIfDirty()
+            }
+
+            2 -> {
+                grammarViewModel.uploadDeckStateIfDirty()
+            }
+
+            3 -> {
+                conversationViewModel.uploadDeckStateIfDirty()
             }
         }
 

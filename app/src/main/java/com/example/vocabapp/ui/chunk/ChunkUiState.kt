@@ -5,8 +5,6 @@ import com.example.vocabapp.data.source.baseChunks
 import com.example.vocabapp.data.model.QuizStats
 
 data class ChunkUiState(
-    val dirty: Boolean = false,
-
     val chunks: List<Chunk> = baseChunks,
 
     val deck: List<Chunk> = emptyList(),

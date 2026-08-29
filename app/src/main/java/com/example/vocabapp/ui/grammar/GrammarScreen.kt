@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 
-import com.example.vocabapp.data.source.GrammarItem
 import com.example.vocabapp.data.source.grammarList
 import com.example.vocabapp.ui.components.GenericQuizUI
 import com.example.vocabapp.manager.TtsManager
@@ -70,50 +69,15 @@ fun GrammarScreen(
         }
     }
 
-    // ✅ 共通出題リスト
-    val quizSource =
-         remember(uiState.selectedTheme) {
-
-            grammarList
-                .filter {
-                    it.theme == uiState.selectedTheme
-                }
-                .groupBy { it.pattern }
-                .values
-                .map { it.random() }
-        }
-
-    // ✅ 残り問題
-    var remaining by remember(quizSource) {
-        mutableStateOf(quizSource.toMutableList())
-    }
-
-    // ✅ 現在問題
-    var current by remember(quizSource) {
-        mutableStateOf(quizSource.firstOrNull())
-    }
-
     var showAnswer by remember { mutableStateOf(false) }
 
-    LaunchedEffect(current) {
+    val currentItem =
+        uiState.deck.getOrNull(
+            uiState.deckIndex
+        )
+
+    LaunchedEffect(currentItem) {
         showAnswer = false
-    }
-
-    // ✅ 共通 next()
-    fun next() {
-        current?.let {
-            remaining.remove(current)
-        }
-
-        if (remaining.isEmpty()) {
-            remaining =
-                createGrammarQuizSource(
-                    uiState.selectedTheme,
-                    grammarList
-                ).toMutableList()
-        }
-
-        current = remaining.randomOrNull()
     }
 
     Column(
@@ -129,13 +93,13 @@ fun GrammarScreen(
             // ✅ クイズモード
             // =====================
 
-            current?.let { currentItem ->
+            currentItem?.let { currentItem ->
                 GenericQuizUI(
                     soundEnabled = soundEnabled,
                     soundVolume = soundVolume,
                     question = currentItem.vietnamese,
                     correctAnswer = currentItem.japanese,
-                    allOptions = quizSource.map { it.japanese },
+                    allOptions = uiState.deck.map { it.japanese },
 
                     quizStats = uiState.quizStats,
                     onQuizResult = { correct ->
@@ -144,7 +108,7 @@ fun GrammarScreen(
                         )
                     },
                     onAnswer = {
-                        next()
+                        viewModel.nextCard()
                     }
                 )
             }
@@ -155,7 +119,7 @@ fun GrammarScreen(
             // ✅ カードモード
             // =====================
 
-            current?.let { currentItem ->
+            currentItem?.let { currentItem ->
                 Box(
                     modifier = Modifier
                         .height(100.dp)
@@ -281,7 +245,7 @@ fun GrammarScreen(
                         // 日本語を消した状態を1フレーム描画
                         withFrameNanos { }
 
-                        next()
+                        viewModel.nextCard()
                     }
                 },
                 modifier = Modifier.width(100.dp).height(50.dp)
@@ -313,22 +277,4 @@ fun GrammarScreen(
             }
         )
     }
-}
-
-fun createGrammarQuizSource(
-    theme: String?,
-    source: List<GrammarItem>
-): List<GrammarItem> {
-
-    return source
-        .filter {
-            it.theme == theme
-        }
-        .groupBy {
-            it.pattern
-        }
-        .values
-        .map {
-            it.random()
-        }
 }

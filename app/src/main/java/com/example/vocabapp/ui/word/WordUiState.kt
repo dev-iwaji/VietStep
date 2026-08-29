@@ -6,8 +6,6 @@ import com.example.vocabapp.data.model.CsvFile
 import com.example.vocabapp.data.model.QuizStats
 
 data class WordUiState(
-    val dirty: Boolean = false,
-
     val words: List<Word> = baseWords,
 
     val deck: List<Word> = emptyList(),

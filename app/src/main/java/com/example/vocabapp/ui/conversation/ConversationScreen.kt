@@ -78,52 +78,15 @@ fun ConversationScreen(
         }
     }
 
-    // ✅ 共通出題リスト
-    val quizSource =
-        if (uiState.selectedPart == "全部") {
-
-            conversationList
-                .filter {
-                    it.theme == uiState.selectedTheme
-                }
-
-        } else {
-
-            conversationList
-                .filter {
-                    it.theme == uiState.selectedTheme &&
-                    it.part == uiState.selectedPart
-                }
-        }
-
-    // ✅ 残り問題
-    var remaining by remember(quizSource) {
-        mutableStateOf(quizSource.toMutableList())
-    }
-
-    // ✅ 現在問題
-    var current by remember(quizSource) {
-        mutableStateOf(quizSource.firstOrNull())
-    }
+    val currentItem =
+        uiState.deck.getOrNull(
+            uiState.deckIndex
+        )
 
     var showAnswer by remember { mutableStateOf(false) }
 
-    LaunchedEffect(current) {
+    LaunchedEffect(currentItem) {
         showAnswer = false
-    }
-
-    // ✅ 共通 next()
-    fun next() {
-        current?.let {
-            remaining.remove(current)
-        }
-
-        if (remaining.isEmpty()) {
-            remaining =
-                quizSource.toMutableList()
-        }
-
-        current = remaining.randomOrNull()
     }
 
     Column(
@@ -139,13 +102,13 @@ fun ConversationScreen(
             // ✅ クイズモード
             // =====================
 
-            current?.let { currentItem ->
+            currentItem?.let { currentItem ->
                 GenericQuizUI(
                     soundEnabled = soundEnabled,
                     soundVolume = soundVolume,
                     question = currentItem.vietnamese,
                     correctAnswer = currentItem.japanese,
-                    allOptions = quizSource.map { it.japanese },
+                    allOptions = uiState.deck.map { it.japanese },
 
                     quizStats = uiState.quizStats,
                     onQuizResult = { correct ->
@@ -154,7 +117,7 @@ fun ConversationScreen(
                         )
                     },
                     onAnswer = {
-                        next()
+                        viewModel.nextCard()
                     }
                 )
             }
@@ -165,7 +128,7 @@ fun ConversationScreen(
             // ✅ カードモード
             // =====================
 
-            current?.let { currentItem ->
+            currentItem?.let { currentItem ->
                 Box(
                     modifier = Modifier
                         .height(100.dp)
@@ -291,7 +254,7 @@ fun ConversationScreen(
                             // 日本語を消した状態を1フレーム描画
                             withFrameNanos { }
 
-                            next()
+                            viewModel.nextCard()
                         }
                     },
                     modifier = Modifier.width(100.dp).height(50.dp)
@@ -309,7 +272,6 @@ fun ConversationScreen(
         ComversationSettingDialog(
             uiState = uiState,
             themeList = themes,
-//           partList = partList,
             onApply = {
                     theme,
                     part,

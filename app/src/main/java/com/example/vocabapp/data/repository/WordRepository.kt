@@ -433,9 +433,5 @@ class WordRepository(
             PrefKeys.WORD_STUDY_HISTORY,
             "[]"
         )
-        Log.d(
-            "WORD_HISTORY",
-            "SharedPreferences保存確認: $savedJson"
-        )
     }
 }

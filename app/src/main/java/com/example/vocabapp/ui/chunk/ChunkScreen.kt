@@ -223,20 +223,26 @@ fun ChunkScreen(
                                         playSound(context, R.raw.correct, soundVolume)
                                     }
 
+                                    val isLastCard =
+                                        uiState.deckIndex == uiState.deck.lastIndex
+
                                     viewModel.answerChunk(currentChunk, true)
 
                                     showAnswer = false
-                                    completedLap = true
+                                    completedLap = isLastCard
                                 },
                                 onLeft = {
                                     if (soundEnabled) {
                                         playSound(context, R.raw.wrong, soundVolume)
                                     }
 
+                                    val isLastCard =
+                                        uiState.deckIndex == uiState.deck.lastIndex
+
                                     viewModel.answerChunk(currentChunk, false)
 
                                     showAnswer = false
-                                    completedLap = true
+                                    completedLap = isLastCard
                                 }
                             ) {
                                 Column(
@@ -354,8 +360,12 @@ fun ChunkScreen(
                             )
                         },
                         onAnswer = { correct ->
+                            val isLastCard =
+                                uiState.deckIndex == uiState.deck.lastIndex
+
                             // ✅ 学習データ更新
                             viewModel.answerChunk(currentChunk, correct)
+                            completedLap = isLastCard
                         }
                     )
                 }

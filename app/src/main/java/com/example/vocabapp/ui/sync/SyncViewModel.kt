@@ -1,15 +1,17 @@
 package com.example.vocabapp.ui.sync
 
-import android.content.Context
-import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.vocabapp.data.repository.SyncRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+
+import com.example.vocabapp.data.repository.SyncRepository
+import android.util.Log
 
 class SyncViewModel : ViewModel() {
 
@@ -118,7 +120,8 @@ class SyncViewModel : ViewModel() {
                         }
                     )
                 }
-            }        }
+            }
+        }
     }
 
     fun cancelDownload() {

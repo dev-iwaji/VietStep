@@ -1,6 +1,7 @@
 package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
+
 import com.example.vocabapp.utils.PrefKeys
 import android.util.Log
 
@@ -16,11 +17,9 @@ class MainRepository (
         )
     }
 
-    fun saveLocalResetAT(time: Long) {
-        Log.d(
-            "RESET_CHECK",
-            "saveLocalResetAT: $time"
-        )
+    fun saveLocalResetAT(
+        time: Long
+    ) {
         prefs.edit()
             .putLong(
                 PrefKeys.RESET_AT,
@@ -29,7 +28,9 @@ class MainRepository (
             .apply()
     }
 
-    fun saveResetAT(time: Long) {
+    fun saveResetAT(
+        time: Long
+    ) {
         saveLocalResetAT(time)
         firebaseRepository.saveResetAT(time)
     }
@@ -41,7 +42,9 @@ class MainRepository (
         )
     }
 
-    fun saveSoundVolume(volume: Float) {
+    fun saveSoundVolume(
+        volume: Float
+    ) {
         prefs.edit()
             .putFloat(
                 PrefKeys.MAIN_SOUND_VOLUME,
@@ -57,7 +60,9 @@ class MainRepository (
         )
     }
 
-    fun saveDarkMode(enabled: Boolean) {
+    fun saveDarkMode(
+        enabled: Boolean
+    ) {
         prefs.edit()
             .putBoolean(
                 PrefKeys.MAIN_DARK_MODE,

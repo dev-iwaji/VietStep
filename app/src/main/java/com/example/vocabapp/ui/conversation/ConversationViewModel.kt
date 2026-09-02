@@ -14,6 +14,7 @@ import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.ConversationRepository
 import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.data.model.Conversation
+import com.example.vocabapp.data.model.QuizStats
 import com.example.vocabapp.data.source.conversationList
 import android.util.Log
 
@@ -92,6 +93,14 @@ class ConversationViewModel : ViewModel() {
         }
     }
 
+    fun resetQuizStats() {
+        _uiState.update {
+            it.copy(
+                quizStats = QuizStats()
+            )
+        }
+    }
+
     fun applySettings(
         theme: String,
         part: String,
@@ -155,7 +164,9 @@ class ConversationViewModel : ViewModel() {
         repository.saveDeckIndex(0)
     }
 
-    fun setSpeechRate(speed: Float) {
+    fun setSpeechRate(
+        speed: Float
+    ) {
         repository.saveSpeechRate(speed)
 
         _uiState.update {
@@ -234,7 +245,9 @@ class ConversationViewModel : ViewModel() {
         }
     }
 
-    private fun setDeckIndex(index: Int) {
+    private fun setDeckIndex(
+        index: Int
+    ) {
 
         val deck = _uiState.value.deck
         if (deck.isEmpty()) return

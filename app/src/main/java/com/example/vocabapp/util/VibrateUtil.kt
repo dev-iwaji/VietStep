@@ -5,7 +5,9 @@ import android.os.Vibrator
 import android.os.VibrationEffect
 import android.os.Build
 
-fun vibration(context: Context) {
+fun vibration(
+    context: Context
+) {
 
     val vibrator = context.getSystemService(Vibrator::class.java)
 

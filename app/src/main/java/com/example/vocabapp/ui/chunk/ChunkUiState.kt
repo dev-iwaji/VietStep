@@ -13,8 +13,7 @@ data class ChunkUiState(
 
     val selectedCategory: Set<String> = emptySet(),
 
-    val selectedDifficulty: Set<String> =
-        setOf("初級","中級","上級"),
+    val selectedDifficulty: Set<String> = ChunkDefaults.DIFFICULTIES,
 
     val weakMode: Boolean = false,
 
@@ -22,3 +21,11 @@ data class ChunkUiState(
 
     val quizStats: QuizStats = QuizStats(),
 )
+
+object ChunkDefaults {
+    val DIFFICULTIES = setOf(
+        "初級",
+        "中級",
+        "上級"
+    )
+}

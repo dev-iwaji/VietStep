@@ -1,17 +1,20 @@
 package com.example.vocabapp.data.repository
 
+import java.time.LocalDate
+import java.io.File
+
 import android.content.Context
 import android.content.SharedPreferences
+
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
 import com.example.vocabapp.data.model.CsvFile
 import com.example.vocabapp.data.model.DailyStat
 import com.example.vocabapp.data.model.WordProgress
 import com.example.vocabapp.utils.PrefKeys
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.time.LocalDate
-import java.io.File
-import android.util.Log
 import com.example.vocabapp.data.model.WordLearningState
+import android.util.Log
 
 class WordRepository(
     private val prefs: SharedPreferences,
@@ -172,7 +175,9 @@ class WordRepository(
         )
     }
 
-    fun saveProgress(gson: Gson, progressList: List<WordProgress>) {
+    fun saveProgress(
+        gson: Gson, progressList: List<WordProgress>
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.WORD_PROGRESS,
@@ -188,7 +193,9 @@ class WordRepository(
         )
     }
 
-    fun saveDeckIndex(index: Int) {
+    fun saveDeckIndex(
+        index: Int
+    ) {
         prefs.edit()
             .putInt(PrefKeys.WORD_DECK_INDEX, index)
             .apply()
@@ -201,7 +208,9 @@ class WordRepository(
         )
     }
 
-    fun saveDeckOrder(deckIds: List<String>) {
+    fun saveDeckOrder(
+        deckIds: List<String>
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.WORD_DECK_ORDER,
@@ -217,7 +226,9 @@ class WordRepository(
         )?.toSet() ?: emptySet()
     }
 
-    fun saveFilterPos(pos: Set<String>) {
+    fun saveFilterPos(
+        pos: Set<String>
+    ) {
         prefs.edit()
             .putStringSet(PrefKeys.WORD_FILTER_POS, pos)
             .apply()
@@ -232,7 +243,9 @@ class WordRepository(
         )
     }
 
-    fun saveCsvFileList(list: List<CsvFile>) {
+    fun saveCsvFileList(
+        list: List<CsvFile>
+    ) {
         prefs.edit()
             .putString(PrefKeys.WORD_CSV_FILE_LIST, Gson().toJson(list))
             .apply()
@@ -247,7 +260,9 @@ class WordRepository(
         ) ?: emptySet()
     }
 
-    fun saveFavorites(favorites: Set<String>) {
+    fun saveFavorites(
+        favorites: Set<String>
+    ) {
         prefs.edit()
             .putStringSet(PrefKeys.WORD_FAVORITES, favorites)
             .apply()
@@ -262,7 +277,9 @@ class WordRepository(
         )
     }
 
-    fun saveFavoriteOnly(enabled: Boolean) {
+    fun saveFavoriteOnly(
+        enabled: Boolean
+    ) {
         prefs.edit()
             .putBoolean(
                 PrefKeys.WORD_FAVORITE_ONLY,
@@ -280,7 +297,9 @@ class WordRepository(
         )
     }
 
-    fun saveWeakMode(enabled: Boolean) {
+    fun saveWeakMode(
+        enabled: Boolean
+    ) {
         prefs.edit()
             .putBoolean(
                 PrefKeys.WORD_WEAK_MODE,
@@ -291,7 +310,9 @@ class WordRepository(
         firebaseRepository.saveWordWeakMode(enabled)
     }
 
-    fun addStudyResult(correct: Boolean) {
+    fun addStudyResult(
+        correct: Boolean
+    ) {
 
         val gson = Gson()
 
@@ -398,7 +419,9 @@ class WordRepository(
         )
     }
 
-    private fun saveStudyHistory(list: MutableList<DailyStat>) {
+    private fun saveStudyHistory(
+        list: MutableList<DailyStat>
+    ) {
         val gson = Gson()
         prefs.edit()
             .putString(

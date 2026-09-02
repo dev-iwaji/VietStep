@@ -48,7 +48,9 @@ class GrammarRepository(
         )
     }
 
-    fun saveDeckIndex(index: Int) {
+    fun saveDeckIndex(
+        index: Int
+    ) {
         prefs.edit()
             .putInt(PrefKeys.GRAMMAR_DECK_INDEX, index)
             .apply()
@@ -95,7 +97,9 @@ class GrammarRepository(
         ) ?: "基本形"
     }
 
-    fun saveSelectedTheme(theme: String) {
+    fun saveSelectedTheme(
+        theme: String
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.GRAMMAR_THEME,

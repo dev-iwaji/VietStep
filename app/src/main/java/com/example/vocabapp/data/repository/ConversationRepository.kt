@@ -1,6 +1,7 @@
 package com.example.vocabapp.data.repository
 
 import android.content.SharedPreferences
+
 import com.example.vocabapp.utils.PrefKeys
 import com.example.vocabapp.data.model.ConversationLearningState
 import android.util.Log
@@ -44,7 +45,9 @@ class ConversationRepository(
         )
     }
 
-    fun saveDeckIndex(index: Int) {
+    fun saveDeckIndex(
+        index: Int
+    ) {
         prefs.edit()
             .putInt(PrefKeys.CONVERSATION_DECK_INDEX, index)
             .apply()
@@ -57,7 +60,9 @@ class ConversationRepository(
         ) ?: "一般"
     }
 
-    fun saveSelectedTheme(theme: String) {
+    fun saveSelectedTheme(
+        theme: String
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.CONVERSATION_THEME,
@@ -75,7 +80,9 @@ class ConversationRepository(
         ) ?: "全部"
     }
 
-    fun saveSelectedPart(part: String) {
+    fun saveSelectedPart(
+        part: String
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.CONVERSATION_PART,
@@ -93,7 +100,9 @@ class ConversationRepository(
         )
     }
 
-    fun saveSpeechRate(speed: Float) {
+    fun saveSpeechRate(
+        speed: Float
+    ) {
         prefs.edit()
             .putFloat(
                 PrefKeys.CONVERSATION_SPEECH_RATE,

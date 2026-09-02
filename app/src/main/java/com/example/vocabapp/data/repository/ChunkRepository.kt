@@ -1,12 +1,14 @@
 package com.example.vocabapp.data.repository
 
-import com.google.gson.Gson
 import android.content.SharedPreferences
-import android.util.Log
 
+import com.google.gson.Gson
+
+import com.example.vocabapp.ui.chunk.ChunkDefaults
 import com.example.vocabapp.data.model.ChunkLearningState
 import com.example.vocabapp.data.model.ChunkProgress
 import com.example.vocabapp.utils.PrefKeys
+import android.util.Log
 
 class ChunkRepository(
     private val prefs: SharedPreferences,
@@ -101,7 +103,9 @@ class ChunkRepository(
         )
     }
 
-    fun saveProgress(gson: Gson, progressList: List<ChunkProgress>) {
+    fun saveProgress(
+        gson: Gson, progressList: List<ChunkProgress>
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.CHUNK_PROGRESS,
@@ -117,7 +121,9 @@ class ChunkRepository(
         )
     }
 
-    fun saveDeckIndex(index: Int) {
+    fun saveDeckIndex(
+        index: Int
+    ) {
         prefs.edit()
             .putInt(PrefKeys.CHUNK_DECK_INDEX, index)
             .apply()
@@ -130,7 +136,9 @@ class ChunkRepository(
         )
     }
 
-    fun saveDeckOrder(deckIds: List<String>) {
+    fun saveDeckOrder(
+        deckIds: List<String>
+    ) {
         prefs.edit()
             .putString(
                 PrefKeys.CHUNK_DECK_ORDER,
@@ -146,7 +154,9 @@ class ChunkRepository(
         )?.toSet() ?: emptySet()
     }
 
-    fun saveFilterCategory(category: Set<String>) {
+    fun saveFilterCategory(
+        category: Set<String>
+    ) {
         prefs.edit()
             .putStringSet(PrefKeys.CHUNK_FILTER_CATEGORY, category)
             .apply()
@@ -155,13 +165,17 @@ class ChunkRepository(
     }
 
     fun loadFilterDifficulty(): Set<String> {
-        return prefs.getStringSet(
-            PrefKeys.CHUNK_FILTER_DIFFICULTY,
-            setOf("初級", "中級", "上級")
-        )?.toSet() ?: emptySet()
+//        return prefs.getStringSet(
+//            PrefKeys.CHUNK_FILTER_DIFFICULTY,
+        return prefs
+            .getStringSet(PrefKeys.CHUNK_FILTER_DIFFICULTY, null)
+            ?.toSet()
+            ?: ChunkDefaults.DIFFICULTIES
     }
 
-    fun saveFilterDifficulty(difficulty: Set<String>) {
+    fun saveFilterDifficulty(
+        difficulty: Set<String>
+    ) {
         prefs.edit()
             .putStringSet(PrefKeys.CHUNK_FILTER_DIFFICULTY, difficulty)
             .apply()
@@ -176,7 +190,9 @@ class ChunkRepository(
         )
     }
 
-    fun saveWeakMode(enabled: Boolean) {
+    fun saveWeakMode(
+        enabled: Boolean
+    ) {
         prefs.edit()
             .putBoolean(
                 PrefKeys.CHUNK_WEAK_MODE,

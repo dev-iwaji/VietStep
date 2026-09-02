@@ -1,12 +1,15 @@
 package com.example.vocabapp.ui.main
 
-import android.content.SharedPreferences
-import androidx.lifecycle.ViewModel
-import com.example.vocabapp.data.repository.FirebaseRepository
-import com.example.vocabapp.data.repository.MainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+
+import android.content.SharedPreferences
+import androidx.lifecycle.ViewModel
+
+import com.example.vocabapp.data.repository.FirebaseRepository
+import com.example.vocabapp.data.repository.MainRepository
+import android.util.Log
 
 class MainViewModel : ViewModel() {
 
@@ -58,7 +61,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun setResetAT(time: Long) {
+    fun setResetAT(
+        time: Long
+    ) {
         repository.saveResetAT(time)
     }
 
@@ -70,7 +75,9 @@ class MainViewModel : ViewModel() {
         return repository.loadResetAT()
     }
 
-    fun setSoundVolume(volume: Float) {
+    fun setSoundVolume(
+        volume: Float
+    ) {
         repository.saveSoundVolume(volume)
 
         _uiState.update {

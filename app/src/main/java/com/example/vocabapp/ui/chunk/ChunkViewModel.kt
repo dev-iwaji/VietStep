@@ -5,28 +5,28 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
-import android.content.SharedPreferences
-
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 
-import com.google.gson.reflect.TypeToken
+import android.content.SharedPreferences
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import com.google.gson.reflect.TypeToken
+
 import com.example.vocabapp.data.model.deckKey
 import com.example.vocabapp.data.model.Chunk
+import com.example.vocabapp.data.model.QuizStats
+import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.ChunkRepository
 import com.example.vocabapp.data.source.baseChunks
-import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.domain.generateChunkDeck
 import com.example.vocabapp.domain.updateChunk
 import com.example.vocabapp.util.loadChunkProgress
 import com.example.vocabapp.util.saveChunkProgress
+import android.util.Log
 
 class ChunkViewModel : ViewModel() {
     private lateinit var repository: ChunkRepository
@@ -165,11 +165,6 @@ class ChunkViewModel : ViewModel() {
                     ) {
                         deckDirty = false
                     }
-
-                    Log.d(
-                        "WORD_SYNC",
-                        "学習状態をアップロードしました"
-                    )
                 }
 
                 result.onFailure { error ->
@@ -184,6 +179,14 @@ class ChunkViewModel : ViewModel() {
                     )
                 }
             }
+    }
+
+    fun resetQuizStats() {
+        _uiState.update {
+            it.copy(
+                quizStats = QuizStats()
+            )
+        }
     }
 
     fun rebuildDeck(
@@ -263,23 +266,34 @@ class ChunkViewModel : ViewModel() {
 
         saveChunkProgress(repository, updated)
 
-        _uiState.update {
+        learningRevision++
+
+        _uiState.update { state ->
             val updatedChunks =
-                it.chunks.map {
+                state.chunks.map { currentChunk ->
                     if (
-                        it.deckKey() == chunk.deckKey()
+                        currentChunk.deckKey() == chunk.deckKey()
                     )
                         updated
                     else
-                        it
+                        currentChunk
                 }
 
-            it.copy(
+            val updatedDeck =
+                state.deck.map { deckChunk ->
+                    if (deckChunk.deckKey() == chunk.deckKey()) {
+                        updated
+                    } else {
+                        deckChunk
+                    }
+                }
+
+            state.copy(
                 chunks = updatedChunks,
+                deck = updatedDeck,
             )
         }
         deckDirty = true
-        learningRevision++
 
         nextCard()
 
@@ -353,36 +367,10 @@ class ChunkViewModel : ViewModel() {
         } else {
 
             // ✅ 1周終了
-            if (state.weakMode) {
-                refreshWeakDeck()
-            } else {
-                setDeckIndex(0)
-            }
+            rebuildDeck()
 
             uploadLearningStateIfDirty()
         }
-    }
-
-    private fun refreshWeakDeck() {
-
-        val weakWordMap = getFilteredChunks()
-            .associateBy { it.vietnamese }
-
-        val newDeck = uiState.value.deck
-            .mapNotNull { deckWord ->
-                weakWordMap[deckWord.vietnamese]
-            }
-            .toMutableList()
-
-        _uiState.update {
-            it.copy(
-                deck = newDeck,
-                deckIndex = 0
-            )
-        }
-
-        saveDeckOrder()
-        repository.saveDeckIndex(0)
     }
 
     private fun saveDeckOrder() {

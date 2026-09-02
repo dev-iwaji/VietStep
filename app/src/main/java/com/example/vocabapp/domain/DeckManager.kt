@@ -3,8 +3,11 @@ package com.example.vocabapp.domain
 import com.example.vocabapp.data.model.Word
 import com.example.vocabapp.data.model.Chunk
 import com.example.vocabapp.data.model.Grammar
+import android.util.Log
 
-fun generateWordDeck(words: List<Word>): MutableList<Word> {
+fun generateWordDeck(
+    words: List<Word>
+): MutableList<Word> {
 
     val lv1 = words.filter { it.level == 1 }
     val lv2 = words.filter { it.level == 2 }
@@ -12,7 +15,9 @@ fun generateWordDeck(words: List<Word>): MutableList<Word> {
     val lv4 = words.filter { it.level == 4 }
     val lv5 = words.filter { it.level == 5 }
 
-    fun pick(list: List<Word>, rate: Float): List<Word> {
+    fun pick(
+        list: List<Word>, rate: Float
+    ): List<Word> {
         if (list.isEmpty()) return emptyList()
         val count = (list.size * rate).toInt().coerceAtLeast(1)
         return list.shuffled().take(count)
@@ -29,7 +34,9 @@ fun generateWordDeck(words: List<Word>): MutableList<Word> {
     return selected.shuffled().toMutableList()
 }
 
-fun generateChunkDeck(chunks: List<Chunk>): MutableList<Chunk> {
+fun generateChunkDeck(
+    chunks: List<Chunk>
+): MutableList<Chunk> {
 
     val lv1 = chunks.filter { it.level == 1 }
     val lv2 = chunks.filter { it.level == 2 }
@@ -37,7 +44,9 @@ fun generateChunkDeck(chunks: List<Chunk>): MutableList<Chunk> {
     val lv4 = chunks.filter { it.level == 4 }
     val lv5 = chunks.filter { it.level == 5 }
 
-    fun pick(list: List<Chunk>, rate: Float): List<Chunk> {
+    fun pick(
+        list: List<Chunk>, rate: Float
+    ): List<Chunk> {
         if (list.isEmpty()) return emptyList()
         val count = (list.size * rate).toInt().coerceAtLeast(1)
         return list.shuffled().take(count)

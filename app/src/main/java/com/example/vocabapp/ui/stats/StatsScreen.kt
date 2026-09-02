@@ -1,46 +1,47 @@
 package com.example.vocabapp.ui.stats
 
-import android.view.View
+import kotlin.math.max
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
+import android.view.View
+import android.graphics.Color as AndroidColor
+
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import android.graphics.Color as AndroidColor
-
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-
-import kotlin.math.max
-
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.runtime.getValue
-
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
-
-import androidx.compose.ui.text.font.FontWeight
 
 import com.example.vocabapp.ui.word.WordViewModel
 import com.example.vocabapp.data.model.DailyStat
-
 import android.util.Log
 
 @Composable
@@ -229,7 +230,9 @@ fun StatsScreen(
 }
 
 @Composable
-fun TodayResultBar(todayStat: DailyStat?) {
+fun TodayResultBar(
+    todayStat: DailyStat?
+) {
 
     val correct = todayStat?.correct ?:0
     val incorrect = todayStat?.incorrect ?:0

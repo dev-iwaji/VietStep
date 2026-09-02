@@ -20,12 +20,12 @@ import androidx.compose.ui.Alignment
 
 import com.example.vocabapp.ui.components.SingleSelectDropdown
 import com.example.vocabapp.data.source.conversationList
+import android.util.Log
 
 @Composable
 fun ComversationSettingDialog(
     uiState: ConversationUiState,
     themeList: List<String>,
-//    partList: List<String>,
     onApply: (String, String, String) -> Unit,
     onDismiss: () -> Unit
 ) {

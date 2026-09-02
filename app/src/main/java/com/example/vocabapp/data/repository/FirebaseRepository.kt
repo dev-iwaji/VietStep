@@ -1,15 +1,18 @@
 package com.example.vocabapp.data.repository
 
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
+
 import com.example.vocabapp.data.model.FirebaseCsv
+import com.example.vocabapp.ui.chunk.ChunkDefaults
 import com.example.vocabapp.data.model.ChunkLearningState
 import com.example.vocabapp.data.model.WordLearningState
 import com.example.vocabapp.data.model.ConversationLearningState
 import com.example.vocabapp.data.model.GrammarLearningState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import android.util.Log
 
 class FirebaseRepository {
@@ -569,12 +572,14 @@ class FirebaseRepository {
 
             filterDifficulty =
                 if (filterDifficultySnapshot.exists()) {
-                    filterDifficultySnapshot
-                        .get("filterDifficulty")
-                            as? List<String>  ?: emptySet()
+                    (filterDifficultySnapshot
+                        .get("filterDifficulty") as? List<*>)
+                    ?.filterIsInstance<String>()
+                        ?.toSet()
+                        ?: ChunkDefaults.DIFFICULTIES
                 } else {
-                    emptyList()
-                }.toSet(),
+                    ChunkDefaults.DIFFICULTIES
+                },
 
             filterCategory =
                 if (filterCategorySnapshot.exists()) {
@@ -869,23 +874,9 @@ class FirebaseRepository {
             )
     }
 
-    fun saveConversationDeckIndex(
-        index: Int
+    fun saveResetAT(
+        time: Long
     ) {
-        val uid = getUid() ?: return
-
-        db.collection("users")
-            .document(uid)
-            .collection("conversation")
-            .document("deckIndex")
-            .set(
-                mapOf(
-                    "deckIndex" to index
-                )
-            )
-    }
-
-    fun saveResetAT(time: Long) {
         val uid =getUid() ?: return
         db.collection("users")
             .document(uid)

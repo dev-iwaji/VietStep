@@ -4,7 +4,9 @@ import android.util.Log
 
 import com.example.vocabapp.data.model.Word
 
-fun updateWord(word: Word, correct: Boolean): Word {
+fun updateWord(
+    word: Word, correct: Boolean
+): Word {
     val history = (word.recentResults + correct).takeLast(5)
 
     val newStreak = if (correct) word.streak + 1 else 0

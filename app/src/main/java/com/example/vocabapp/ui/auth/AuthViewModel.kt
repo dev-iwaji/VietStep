@@ -1,14 +1,15 @@
 package com.example.vocabapp.ui.auth
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.vocabapp.data.repository.FirebaseRepository
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+
+import com.example.vocabapp.data.repository.FirebaseRepository
+import android.util.Log
 
 class AuthViewModel : ViewModel() {
 

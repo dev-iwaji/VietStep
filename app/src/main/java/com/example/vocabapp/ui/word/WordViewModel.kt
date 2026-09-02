@@ -1,19 +1,19 @@
 package com.example.vocabapp.ui.word
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-import android.util.Log
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 import com.example.vocabapp.data.model.CsvFile
 import com.example.vocabapp.data.model.Word
@@ -22,11 +22,13 @@ import com.example.vocabapp.data.source.baseWords
 import com.example.vocabapp.domain.generateWordDeck
 import com.example.vocabapp.domain.updateWord
 import com.example.vocabapp.data.model.DailyStat
+import com.example.vocabapp.data.model.QuizStats
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.WordRepository
 import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.util.saveWordProgress
 import com.example.vocabapp.util.loadWordProgress
+import android.util.Log
 
 class WordViewModel : ViewModel() {
 
@@ -68,7 +70,9 @@ class WordViewModel : ViewModel() {
         }
     }
 
-    private fun loadLocalData(context: Context) {
+    private fun loadLocalData(
+        context: Context
+    ) {
 
         _uiState.update {
             it.copy(
@@ -167,6 +171,14 @@ class WordViewModel : ViewModel() {
                     )
                 }
             }
+    }
+
+    fun resetQuizStats() {
+        _uiState.update {
+            it.copy(
+                quizStats = QuizStats()
+            )
+        }
     }
 
     fun rebuildDeck(
@@ -400,9 +412,9 @@ class WordViewModel : ViewModel() {
 
         learningRevision++
 
-        _uiState.update {
+        _uiState.update { state ->
             val updatedWords =
-                it.words.map { currentWord ->
+                state.words.map { currentWord ->
                     if (
                         currentWord.deckKey() == word.deckKey()
                     )
@@ -411,12 +423,22 @@ class WordViewModel : ViewModel() {
                         currentWord
                 }
 
-            it.copy(
+            val updatedDeck =
+                state.deck.map { deckWord ->
+                    if (deckWord.deckKey() == word.deckKey()) {
+                        updated
+                    } else {
+                        deckWord
+                    }
+                }
+
+
+            state.copy(
                 words = updatedWords,
+                deck = updatedDeck,
             )
         }
         deckDirty = true
-        learningRevision++
 
         nextCard()
 
@@ -523,36 +545,10 @@ class WordViewModel : ViewModel() {
         } else {
 
             // ✅ 1周終了
-            if (state.weakMode) {
-                refreshWeakDeck()
-            } else {
-                setDeckIndex(0)
-            }
+            rebuildDeck()
 
             uploadLearningStateIfDirty()
         }
-    }
-
-    private fun refreshWeakDeck() {
-
-        val weakWordMap = getFilteredWords()
-            .associateBy { it.vietnamese }
-
-        val newDeck = uiState.value.deck
-            .mapNotNull { deckWord ->
-                weakWordMap[deckWord.vietnamese]
-            }
-            .toMutableList()
-
-        _uiState.update {
-            it.copy(
-                deck = newDeck,
-                deckIndex = 0
-            )
-        }
-
-        saveDeckOrder()
-        repository.saveDeckIndex(0)
     }
 
     private fun saveDeckOrder() {

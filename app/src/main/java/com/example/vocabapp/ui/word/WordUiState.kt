@@ -34,4 +34,3 @@ data class WordUiState(
 
     val quizStats: QuizStats = QuizStats(),
 )
-

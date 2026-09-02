@@ -3,6 +3,7 @@ package com.example.vocabapp.manager
 import android.content.SharedPreferences
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.utils.PrefKeys
+import android.util.Log
 
 object ResetManager {
 
@@ -12,6 +13,8 @@ object ResetManager {
     ) {
         firebaseRepository.resetWord()
         firebaseRepository.resetChunk()
+        firebaseRepository.resetGrammar()
+        firebaseRepository.resetConversation()
 
         clearLocalData(prefs)
     }
@@ -35,7 +38,11 @@ object ResetManager {
             .remove(PrefKeys.CHUNK_DECK_INDEX)
             .remove(PrefKeys.CHUNK_DECK_ORDER)
 
-            // 必要な文法・会話設定
+            .remove(PrefKeys.GRAMMAR_DECK_ORDER)
+            .remove(PrefKeys.GRAMMAR_DECK_ORDER)
+
+            .remove(PrefKeys.CONVERSATION_DECK_INDEX)
+
             .commit()
     }
 }

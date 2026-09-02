@@ -172,6 +172,12 @@ fun MainScreen(
         chunkViewModel.load()
         grammarViewModel.load()
         conversationViewModel.load()
+
+        // ✅ リセット判定後にクイズモードを初期化する
+        wordViewModel.resetQuizStats()
+        chunkViewModel.resetQuizStats()
+        grammarViewModel.resetQuizStats()
+        conversationViewModel.resetQuizStats()
     }
 
     var tab by remember { mutableStateOf(0) }
@@ -351,6 +357,11 @@ fun MainScreen(
                                         chunkViewModel.load()
                                         grammarViewModel.load()
                                         conversationViewModel.load()
+
+                                        wordViewModel.resetQuizStats()
+                                        chunkViewModel.resetQuizStats()
+                                        grammarViewModel.resetQuizStats()
+                                        conversationViewModel.resetQuizStats()
 
                                         statsRefreshKey++
                                         tab = 0

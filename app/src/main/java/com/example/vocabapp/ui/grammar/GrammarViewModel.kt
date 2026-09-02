@@ -9,13 +9,14 @@ import kotlinx.coroutines.Job
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.vocabapp.data.model.Grammar
 
+import com.example.vocabapp.data.model.Grammar
 import com.example.vocabapp.data.repository.FirebaseRepository
 import com.example.vocabapp.data.repository.GrammarRepository
 import com.example.vocabapp.data.model.updated
 import com.example.vocabapp.data.source.grammarList
 import com.example.vocabapp.domain.generateGrammarDeck
+import com.example.vocabapp.data.model.QuizStats
 import android.util.Log
 
 class GrammarViewModel : ViewModel() {
@@ -154,7 +155,17 @@ class GrammarViewModel : ViewModel() {
         repository.saveDeckIndex(0)
     }
 
-    fun setSpeechRate(speed: Float) {
+    fun resetQuizStats() {
+        _uiState.update {
+            it.copy(
+                quizStats = QuizStats()
+            )
+        }
+    }
+
+    fun setSpeechRate(
+        speed: Float
+    ) {
         repository.saveSpeechRate(speed)
 
         _uiState.update {
@@ -225,7 +236,9 @@ class GrammarViewModel : ViewModel() {
         }
     }
 
-    private fun setDeckIndex(index: Int) {
+    private fun setDeckIndex(
+        index: Int
+    ) {
 
         val deck = _uiState.value.deck
         if (deck.isEmpty()) return

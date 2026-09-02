@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken
 
 import com.example.vocabapp.data.model.Word
 import com.example.vocabapp.data.model.WordProgress
-
 import com.example.vocabapp.data.repository.WordRepository
 import com.example.vocabapp.data.model.deckKey
 import android.util.Log

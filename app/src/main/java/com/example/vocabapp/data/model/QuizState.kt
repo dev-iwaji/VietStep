@@ -2,11 +2,8 @@ package com.example.vocabapp.data.model
 
 data class QuizStats(
     val streak: Int = 0,
-
     val bestStreak: Int = 0,
-
     val total: Int = 0,
-
     val correctCount: Int = 0,
 )
 

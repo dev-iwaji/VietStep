@@ -1,0 +1,36 @@
+package com.iwaji.vietstep.ui.word
+
+import com.iwaji.vietstep.data.model.Word
+import com.iwaji.vietstep.data.source.baseWords
+import com.iwaji.vietstep.data.model.CsvFile
+import com.iwaji.vietstep.data.model.QuizStats
+
+data class WordUiState(
+    val words: List<Word> = baseWords,
+
+    val deck: List<Word> = emptyList(),
+
+    val deckIndex: Int = 0,
+
+    val selectedPos: Set<String> = emptySet(),
+
+    val searchWord: Boolean = false,
+
+    val weakMode: Boolean = false,
+
+    val favoriteOnly: Boolean = false,
+
+    val favorites: Set<String> = emptySet(),
+
+    val studyMode: String = "card",
+
+    val csvList: List<CsvFile> = emptyList(),
+
+    val isSyncing: Boolean = true,
+
+    val syncMessage: String = "",
+
+    val isInitialized: Boolean = false,
+
+    val quizStats: QuizStats = QuizStats(),
+)

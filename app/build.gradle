@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.vocabapp'
+    namespace 'com.iwaji.vietstep'
     compileSdk 34
 
     buildFeatures {
@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.vocabapp"
+        applicationId "com.iwaji.vietstep"
         minSdk 31
         targetSdk 34
         versionCode 100

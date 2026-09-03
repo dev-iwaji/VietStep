@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.VocabApp.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.VietStep.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@null</item>
         <item name="windowSplashScreenBackground">@android:color/transparent</item>
     </style>

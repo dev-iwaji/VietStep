@@ -13,4 +13,6 @@
 
 ## Privacy Policy
 
-https://dev-iwaji.github.io/VietStep/
+The privacy policy is available here:
+
+https://dev-iwaji.github.io/VietStep/privacy.html

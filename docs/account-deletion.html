@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>VietStep アカウント削除</title>
+
+<style>
+body{
+    max-width:900px;
+    margin:40px auto;
+    padding:20px;
+    font-family:"Yu Gothic","Meiryo",sans-serif;
+    line-height:1.8;
+    color:#333;
+}
+
+h1,h2{
+    border-bottom:1px solid #ccc;
+    padding-bottom:5px;
+}
+
+table{
+    border-collapse:collapse;
+    width:100%;
+}
+
+table,th,td{
+    border:1px solid #ccc;
+}
+
+th,td{
+    padding:8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>VietStep アカウント削除</h1>
+
+<p>
+最終更新日：2026年9月
+</p>
+
+<p>
+VietStepではアプリ内からアカウントを削除できます。
+</p>
+
+<h2>手順</h2>
+
+<p>
+<ol>
+    <li>設定を開く
+    <li>「アカウント削除」を押す
+    <li>確認ダイアログで削除を実行
+    <li>必要に応じてGoogleで再ログイン後、再度削除
+</ol>
+</p>
+
+<h2>削除されるデータ</h2>
+
+<p>
+<ul>
+    <li>Firebase Authenticationアカウント
+    <li>Firestore上の学習データ
+    <ul>
+        <li>単語
+        <li>チャンク
+        <li>文法
+        <li>会話
+        <li>CSV
+        <li>同期情報
+    </ul>
+</ul>
+</p>
+
+<h2>削除されないデータ</h2>
+
+<p>
+<ul>
+    <li>Googleアカウント
+    <li>端末内に保存されたローカルデータ
+</ul>
+
+<h2>保持期間</h2>
+
+<p>
+アカウント削除後、Firebase上のデータは削除され、保持されません。
+端末内のローカルデータは、ユーザーがアプリをアンインストールするか、
+「学習データ初期化」を実行するまで保持されます。
+</p>
+
+<hr>
+</p>
+
+<p>
+© 2026 VietStep
+</p>
+
+</body>
+</html>

@@ -1,0 +1,18 @@
+# VietStep
+
+ベトナム語学習アプリ
+
+## Features
+
+- 単語学習
+- チャンク学習
+- 文法学習
+- 会話学習
+- Firebase同期（Googleログイン）
+- オフライン対応
+
+## Privacy Policy
+
+The privacy policy is available here:
+
+https://dev-iwaji.github.io/VietStep/privacy.html

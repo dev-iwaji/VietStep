@@ -135,26 +135,26 @@ class FirebaseRepository {
                     )
                 )
 
-            batch.set(
-                wordCollection.document("deckOrder"),
-                mapOf(
-                    "deckOrder" to deckOrder
+                batch.set(
+                    wordCollection.document("deckOrder"),
+                    mapOf(
+                        "deckOrder" to deckOrder
+                    )
                 )
-            )
 
-            batch.set(
-                wordCollection.document("deckIndex"),
-                mapOf(
-                    "deckIndex" to deckIndex
+                batch.set(
+                    wordCollection.document("deckIndex"),
+                    mapOf(
+                        "deckIndex" to deckIndex
+                    )
                 )
-            )
 
-            batch.set(
-                wordCollection.document("studyHistory"),
-                mapOf(
-                    "studyHistory" to studyHistory
+                batch.set(
+                    wordCollection.document("studyHistory"),
+                    mapOf(
+                        "studyHistory" to studyHistory
+                    )
                 )
-            )
 
         }.await()
     }

@@ -152,10 +152,6 @@ class WordViewModel : ViewModel() {
                         deckDirty = false
                     }
 
-                    Log.d(
-                        "WORD_SYNC",
-                        "学習状態をアップロードしました"
-                    )
                 }
 
                 result.onFailure { error ->

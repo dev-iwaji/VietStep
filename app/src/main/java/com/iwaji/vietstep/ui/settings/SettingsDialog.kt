@@ -36,10 +36,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 
 import com.iwaji.vietstep.R
 import com.iwaji.vietstep.util.playSound
 import com.iwaji.vietstep.BuildConfig
+import android.util.Log
 
 @Composable
 fun SettingsDialog(
@@ -48,6 +50,7 @@ fun SettingsDialog(
     uid: String?,
     isOnline: Boolean,
     isSyncing: Boolean,
+    isDeleting: Boolean,
     syncMessage: String?,
     onDarkModeChanged: (Boolean) -> Unit,
     onSoundVolumeChanged: (Float) -> Unit,
@@ -55,6 +58,7 @@ fun SettingsDialog(
     onDownloadFromFirebase: () -> Unit,
     onLogin: () -> Unit,
     onLogout: () -> Unit,
+    onDeleteAccount: () -> Unit,
     onDismiss: () -> Unit
 ) {
 
@@ -70,6 +74,11 @@ fun SettingsDialog(
         isFirebaseLoggedIn &&
                 isOnline &&
                 !isSyncing
+
+    var showDeleteDialog by remember {
+        mutableStateOf(false)
+    }
+
     AlertDialog(
 
         onDismissRequest = onDismiss,
@@ -118,7 +127,7 @@ fun SettingsDialog(
                 Button(
                     onClick = onDownloadFromFirebase,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = canSync
+                    enabled = canSync && !isDeleting,
                 ) {
                     if (isSyncing) {
                         CircularProgressIndicator(
@@ -171,6 +180,7 @@ fun SettingsDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(
+                            enabled = !isDeleting,
                             onClick = {
                                 showUid = !showUid
                             }, modifier = Modifier.weight(1f)
@@ -190,6 +200,7 @@ fun SettingsDialog(
                             LocalClipboardManager.current
 
                         Button(
+                            enabled = !isDeleting,
                             onClick = {
                                 clipboard.setText(
                                     AnnotatedString(
@@ -240,58 +251,61 @@ fun SettingsDialog(
 
                 Spacer(Modifier.height(16.dp))
 
-                    Column {
+                Column {
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
-                            // ✅ 音量アイコン
-                            Icon(
-                                imageVector = when {
-                                    soundVolume == 0f -> Icons.Default.VolumeOff
-                                    soundVolume < 0.33f -> Icons.Default.VolumeDown
-                                    else -> Icons.Default.VolumeUp
-                                },
-                                contentDescription = null,
-                                tint = when {
-                                    soundVolume == 0f -> Color.Gray
-                                    else -> Color(0xFF4CAF50)
-                                }
-                            )
-
-                            Spacer(Modifier.width(8.dp))
-
-                            Text("効果音の音量")
-
-                            Spacer(Modifier.weight(1f))
-
-                            Text("${(soundVolume * 100).toInt()}%")
-                        }
-
-                        var lastPlayTime by remember { mutableStateOf(0L) }
-
-                        Slider(
-                            value = soundVolume,
-                            onValueChange = {
-                                onSoundVolumeChanged(it)
-
-                                val now = System.currentTimeMillis()
-
-                                // ✅ 400ms以上間隔あける
-                                if (now - lastPlayTime > 400) {
-                                    playSound(context,
-                                        R.raw.correct, soundVolume)
-                                    lastPlayTime = now
-                                }
+                        // ✅ 音量アイコン
+                        Icon(
+                            imageVector = when {
+                                soundVolume == 0f -> Icons.Default.VolumeOff
+                                soundVolume < 0.33f -> Icons.Default.VolumeDown
+                                else -> Icons.Default.VolumeUp
                             },
-                            valueRange = 0f..1f
+                            contentDescription = null,
+                            tint = when {
+                                soundVolume == 0f -> Color.Gray
+                                else -> Color(0xFF4CAF50)
+                            }
                         )
-                   }
+
+                        Spacer(Modifier.width(8.dp))
+
+                        Text("効果音の音量")
+
+                        Spacer(Modifier.weight(1f))
+
+                        Text("${(soundVolume * 100).toInt()}%")
+                    }
+
+                    var lastPlayTime by remember { mutableStateOf(0L) }
+
+                    Slider(
+                        value = soundVolume,
+                        onValueChange = {
+                            onSoundVolumeChanged(it)
+
+                            val now = System.currentTimeMillis()
+
+                            // ✅ 400ms以上間隔あける
+                            if (now - lastPlayTime > 400) {
+                                playSound(
+                                    context,
+                                    R.raw.correct, soundVolume
+                                )
+                                lastPlayTime = now
+                            }
+                        },
+                        valueRange = 0f..1f
+                    )
+                }
 
                 Spacer(Modifier.height(16.dp))
 
                 Button(
+                    enabled = !isDeleting,
                     onClick = {
                         showResetDialog = true
                     },
@@ -309,6 +323,7 @@ fun SettingsDialog(
                 Spacer(Modifier.height(16.dp))
 
                 Button(
+                    enabled = !isDeleting,
                     onClick = {
                         if (isFirebaseLoggedIn) {
                             onLogout()
@@ -325,6 +340,39 @@ fun SettingsDialog(
                             "Googleでログイン"
                         }
                     )
+                }
+
+                if (isFirebaseLoggedIn) {
+
+                    Spacer(Modifier.height(12.dp))
+
+                    OutlinedButton(
+                        enabled = !isDeleting,
+                        onClick = {
+                            showDeleteDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.Red
+                        )
+                    ) {
+                        if (isDeleting) {
+
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+
+                            Spacer(Modifier.width(8.dp))
+
+                            Text("削除中...")
+
+                        } else {
+
+                            Text("アカウント削除")
+
+                        }
+                    }
                 }
             }
 
@@ -343,18 +391,18 @@ fun SettingsDialog(
                     text = {
                         Text(
                             """
-                                        以下のデータを削除します。
+                            以下のデータを削除します。
 
-                                        ・単語レベル
-                                        ・チャンクレベル
-                                        ・学習履歴
-                                        ・学習結果・統計
-                                        ・デッキ情報
+                            ・単語レベル
+                            ・チャンクレベル
+                            ・学習履歴
+                            ・学習結果・統計
+                            ・デッキ情報
 
-                                        出題範囲やアプリ設定は保持されます。
+                            出題範囲やアプリ設定は保持されます。
 
-                                        本当に初期化しますか？
-                                        """.trimIndent()
+                            本当に初期化しますか？
+                            """.trimIndent()
                         )
                     },
 
@@ -378,6 +426,69 @@ fun SettingsDialog(
                             }
                         ) {
                             Text("初期化")
+                        }
+                    }
+                )
+            }
+
+            if (showDeleteDialog) {
+
+                AlertDialog(
+
+                    onDismissRequest = {
+                        showDeleteDialog = false
+                    },
+
+                    title = {
+                        Text("アカウント削除")
+                    },
+
+                    text = {
+
+                        Text(
+                            """
+                            Firebaseアカウントを削除します。
+                            
+                            削除される内容
+                            
+                            ・Firebase同期データ
+                            ・単語
+                            ・チャンク
+                            ・文法
+                            ・会話
+                            ・CSVファイル
+                            
+                            Googleアカウントは削除されません。
+                            
+                            あとから「Googleでログイン」を押すと
+                            再度Firebaseアカウントを作成できます。
+                            
+                            本当に削除しますか？
+                            """.trimIndent()
+                        )
+                    },
+
+                    dismissButton = {
+
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog = false
+                            }
+                        ) {
+                            Text("キャンセル")
+                        }
+                    },
+
+                    confirmButton = {
+
+                        Button(
+                            enabled = !isDeleting,
+                            onClick = {
+                                showDeleteDialog = false
+                                onDeleteAccount()
+                            }
+                        ) {
+                            Text("アカウント削除")
                         }
                     }
                 )

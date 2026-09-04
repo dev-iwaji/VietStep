@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import android.widget.Toast
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -21,6 +22,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 
 import com.iwaji.vietstep.ui.word.WordScreen
 import com.iwaji.vietstep.ui.word.WordViewModel
@@ -44,7 +47,9 @@ import com.iwaji.vietstep.data.repository.WordRepository
 import com.iwaji.vietstep.data.repository.ConversationRepository
 import com.iwaji.vietstep.data.repository.GrammarRepository
 import com.iwaji.vietstep.util.NetworkMonitor
+import com.iwaji.vietstep.util.GoogleLoginHelper
 import android.util.Log
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +59,7 @@ fun MainScreen(
 ) {
 
     val context = LocalContext.current
+
     val prefs = context.getSharedPreferences("app", Context.MODE_PRIVATE)
 
     val mainUiState by mainViewModel.uiState.collectAsState()
@@ -112,6 +118,10 @@ fun MainScreen(
     }
 
     var showLogin by remember {
+        mutableStateOf(false)
+    }
+
+    var isDeleting by remember {
         mutableStateOf(false)
     }
 
@@ -328,6 +338,7 @@ fun MainScreen(
                             uid = firebaseRepository.getUid(),
                             isOnline = syncUiState.isOnline,
                             isSyncing = syncUiState.isSyncing,
+                            isDeleting = isDeleting,
                             syncMessage = syncUiState.message,
                             onDarkModeChanged = {
                                 mainViewModel.setDarkMode(it)
@@ -395,9 +406,59 @@ fun MainScreen(
                                     syncViewModel.requestDownload()
                                 }
                             },
+                            onDeleteAccount = {
+                                isDeleting = true
+
+                                authViewModel.deleteAccount(
+
+                                    onSuccess = {
+
+                                        GoogleLoginHelper
+                                            .getClient(context)
+                                            .signOut()
+
+                                        Toast.makeText(
+                                            context,
+                                            "アカウントを削除しました",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+
+                                        isDeleting = false
+                                        showSettings = true
+                                        showLogin = false
+                                    },
+
+                                    onError = { e ->
+                                        isDeleting = false
+
+                                        if (e is FirebaseAuthRecentLoginRequiredException) {
+
+                                            Toast.makeText(
+                                                context,
+                                                "アカウント削除には再ログインが必要です",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+
+                                            showSettings = false
+                                            showLogin = true
+
+                                        } else {
+
+                                            Toast.makeText(
+                                                context,
+                                                e.message ?: "削除に失敗しました",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+
+                                            showSettings = true
+                                            showLogin = false
+                                        }
+                                    }
+                                )
+                            },
                             onDismiss = {
-                                menuExpanded = false
-                                showSettings = false
+                                    menuExpanded = false
+                                    showSettings = false
                             }
                         )
                     }

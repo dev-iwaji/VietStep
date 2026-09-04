@@ -26,13 +26,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
-import com.iwaji.vietstep.R
 import com.iwaji.vietstep.ui.auth.AuthViewModel
+import com.iwaji.vietstep.util.GoogleLoginHelper
 import android.util.Log
 
 @Composable
@@ -46,19 +45,7 @@ fun LoginScreen(
     var isLoggingIn by remember {mutableStateOf(false)}
 
     val googleSignInClient =
-        GoogleSignIn.getClient(
-            context,
-            GoogleSignInOptions.Builder(
-                GoogleSignInOptions.DEFAULT_SIGN_IN
-            )
-                .requestIdToken(
-                    context.getString(
-                        R.string.default_web_client_id
-                    )
-                )
-                .requestEmail()
-                .build()
-        )
+        GoogleLoginHelper.getClient(context)
 
     val launcher =
         rememberLauncherForActivityResult(

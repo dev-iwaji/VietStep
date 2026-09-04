@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 
 import com.iwaji.vietstep.data.model.FirebaseCsv
 import com.iwaji.vietstep.ui.chunk.ChunkDefaults
@@ -30,6 +31,19 @@ class FirebaseRepository {
         _authState.value = firebaseAuth.currentUser
     }
 
+    private companion object {
+
+        val USER_COLLECTIONS =
+            listOf(
+                "word",
+                "chunk",
+                "grammar",
+                "conversation",
+                "csv",
+                "sync"
+            )
+    }
+
     init {
         auth.addAuthStateListener(listener)
     }
@@ -42,6 +56,58 @@ class FirebaseRepository {
         FirebaseAuth
             .getInstance()
             .signOut()
+    }
+
+    suspend fun deleteAccount() {
+
+        val user = auth.currentUser
+            ?: throw IllegalStateException("ログインしていません")
+
+        val uid = user.uid
+
+        val userDoc =
+            db.collection("users")
+                .document(uid)
+
+        USER_COLLECTIONS.forEach {
+            // ✅ サブコレクション内の全ドキュメントを削除
+            deleteCollection(uid, it)
+        }
+
+        // ✅ users/{uid} を削除
+        userDoc.delete().await()
+
+        try {
+            // ✅ Firebase Authentication のユーザー削除
+            user.delete().await()
+        }
+         catch (e: FirebaseAuthRecentLoginRequiredException) {
+            // ✅ UI側へ通知する
+            throw e
+        }
+    }
+
+    private suspend fun deleteCollection(
+        uid: String,
+        name: String
+    ) {
+
+        val snapshot =
+            db.collection("users")
+                .document(uid)
+                .collection(name)
+                .get()
+                .await()
+
+        val batch = db.batch()
+
+        snapshot.documents.forEach {
+
+            batch.delete(it.reference)
+
+        }
+
+        batch.commit().await()
     }
 
     suspend fun saveWordLearningState(

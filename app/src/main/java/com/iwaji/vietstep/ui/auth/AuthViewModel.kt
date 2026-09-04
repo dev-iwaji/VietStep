@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.iwaji.vietstep.data.repository.FirebaseRepository
+import android.util.Log
 
 class AuthViewModel : ViewModel() {
 
@@ -49,6 +50,22 @@ class AuthViewModel : ViewModel() {
 
     fun logout() {
         firebaseRepository.logout()
+    }
+
+    fun deleteAccount(
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+
+        viewModelScope.launch {
+
+            try {
+                firebaseRepository.deleteAccount()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
     }
 
     fun refreshLoginState() {

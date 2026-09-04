@@ -13,4 +13,4 @@
 
 ## Privacy Policy
 
-https://＜GitHubユーザー名＞.github.io/VocabApp/privacy.html
+https://dev-iwaji.github.io/VietStep/

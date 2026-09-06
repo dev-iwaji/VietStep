@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace 'com.iwaji.vietstep'
-    compileSdk 34
+    compileSdk 36
 
     buildFeatures {
         buildConfig true
@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId "com.iwaji.vietstep"
         minSdk 31
-        targetSdk 34
+        targetSdk 36
         versionCode 100
         versionName "1.0.0"
     }

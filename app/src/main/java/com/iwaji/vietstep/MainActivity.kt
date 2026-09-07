@@ -1,12 +1,15 @@
 package com.iwaji.vietstep
 
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 import android.os.Bundle
+import android.view.animation.OvershootInterpolator
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -19,19 +22,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.CubicBezierEasing
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 import com.iwaji.vietstep.ui.auth.AuthViewModel
 import com.iwaji.vietstep.ui.main.MainScreen
@@ -39,6 +42,8 @@ import com.iwaji.vietstep.ui.main.MainViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
         com.github.mikephil.charting.utils.Utils.init(this)
@@ -51,7 +56,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            var showSplash by remember {
+            var showIntro by remember {
                 mutableStateOf(true)
             }
 
@@ -81,17 +86,16 @@ class MainActivity : ComponentActivity() {
                     lightColorScheme()
                 }
             ) {
-                if (showSplash) {
-                    SplashScreen (
-                        darkMode = mainUiState.darkMode
-                    ){
-                        showSplash = false
+                MainScreen(
+                    authViewModel = authViewModel,
+                    mainViewModel = mainViewModel
+                )
+
+                if (showIntro) {
+
+                    IntroOverlay() {
+                        showIntro = false
                     }
-                } else {
-                    MainScreen(
-                        authViewModel = authViewModel,
-                        mainViewModel = mainViewModel
-                    )
                 }
             }
         }
@@ -99,62 +103,64 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SplashScreen(
-    darkMode: Boolean,
-    onFinish: () -> Unit
+fun IntroOverlay(
+    onFinished: () -> Unit
 ) {
-    val alpha = remember { Animatable(1f) }
+    var visible by remember { mutableStateOf(true) }
+
     val scale = remember { Animatable(0.6f) }
+    val alpha = remember { Animatable(1f) }
 
-    LaunchedEffect(Unit) {
-        val scaleJob = launch {
-            scale.animateTo(
-                targetValue = 2.0f,   // ← 最終的にもっと大きくしたい
-                animationSpec = tween(
-                    durationMillis = 1500,
-                    easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-                )
+    LaunchedEffect(visible) {
+
+        val overshoot = OvershootInterpolator(2.0f)
+
+        // ✅ 小さいアイコンから拡大（少しオーバーシュート）
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(
+                durationMillis = 1000,
+                easing = { overshoot.getInterpolation(it) }
             )
-        }
+        )
 
-        val alphaJob = launch {
-            alpha.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(
-                    durationMillis = 1000,
-                    easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-                )
-            )
-        }
+        // ✅ 少し停止
+        delay(200)
 
-        scaleJob.join()
-        alphaJob.join()
-        onFinish()
+        // ✅ フェードアウト
+        alpha.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(300)
+        )
+
+        visible = false
+        onFinished()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                if (darkMode) {
-                    Color.Black
-                } else {
-                    Color.White
-                }
-            ),
-        contentAlignment = Alignment.Center
+    AnimatedVisibility(
+        visible = visible,
+        exit = ExitTransition.None
     ) {
 
-        // ★ ここが重要：Image を Box で包む
         Box(
             modifier = Modifier
-                .scale(scale.value)   // ← 初期フレームから確実に反映される
-                .alpha(alpha.value)
+                .fillMaxSize()
+                .background(
+                         Color(0xFF1F1F1F)
+                 ),
+            contentAlignment = Alignment.Center
         ) {
+
             Image(
-                painter = painterResource(id = R.drawable.splash_logo),
+                painter = painterResource(R.drawable.splash_logo),
                 contentDescription = null,
-                modifier = Modifier.size(180.dp)  // ← Image 自体には scale をかけない
+                modifier = Modifier
+                    .size(280.dp)
+                    .graphicsLayer {
+                        scaleX = scale.value
+                        scaleY = scale.value
+                        this.alpha = alpha.value
+                    }
             )
         }
     }

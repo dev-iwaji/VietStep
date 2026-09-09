@@ -125,17 +125,21 @@ fun MainScreen(
         mutableStateOf(false)
     }
 
-    // ✅ 初期化処理
-    LaunchedEffect(Unit) {
-        // ✅ 最初に全ViewModelを初期化
-        wordViewModel.initialize(prefs)
-        chunkViewModel.initialize(prefs)
-        grammarViewModel.initialize(prefs)
-        conversationViewModel.initialize(prefs)
+    fun resetAll() {
+        // ✅ リセット判定後にローカル学習データを読み込む
+        wordViewModel.load(context)
+        chunkViewModel.load()
+        grammarViewModel.load()
+        conversationViewModel.load()
 
-        syncViewModel.initialize(
-            repository = syncRepository
-        )
+        // ✅ リセット判定後にクイズモードを初期化する
+        wordViewModel.resetQuizStats()
+        chunkViewModel.resetQuizStats()
+        grammarViewModel.resetQuizStats()
+        conversationViewModel.resetQuizStats()
+    }
+
+    suspend fun syncResetState(): Boolean {
 
         // ✅ SharedPreferencesから直接取得
         val localResetAT = mainViewModel.getLocalResetAT()
@@ -177,17 +181,24 @@ fun MainScreen(
             }
         }
 
-        // ✅ リセット判定後にローカル学習データを読み込む
-        wordViewModel.load(context)
-        chunkViewModel.load()
-        grammarViewModel.load()
-        conversationViewModel.load()
+        return shouldReset
+    }
 
-        // ✅ リセット判定後にクイズモードを初期化する
-        wordViewModel.resetQuizStats()
-        chunkViewModel.resetQuizStats()
-        grammarViewModel.resetQuizStats()
-        conversationViewModel.resetQuizStats()
+    // ✅ 初期化処理
+    LaunchedEffect(Unit) {
+        // ✅ 最初に全ViewModelを初期化
+        wordViewModel.initialize(prefs)
+        chunkViewModel.initialize(prefs)
+        grammarViewModel.initialize(prefs)
+        conversationViewModel.initialize(prefs)
+
+        syncViewModel.initialize(
+            repository = syncRepository
+        )
+
+        syncResetState()
+
+        resetAll()
     }
 
     var tab by remember { mutableStateOf(0) }
@@ -571,6 +582,12 @@ fun MainScreen(
             LoginScreen(
                 authViewModel = authViewModel,
                 isOnline = syncUiState.isOnline,
+                onLoginSuccess = {
+                    scope.launch {
+                        if (syncResetState())
+                            resetAll()
+                    }
+                },
                 onDismiss = {
                     showLogin = false
                     showSettings = true

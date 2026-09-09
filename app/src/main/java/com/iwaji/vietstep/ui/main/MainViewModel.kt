@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 
 import com.iwaji.vietstep.data.repository.FirebaseRepository
 import com.iwaji.vietstep.data.repository.MainRepository
+import android.util.Log
 
 class MainViewModel : ViewModel() {
 
@@ -51,6 +52,10 @@ class MainViewModel : ViewModel() {
     fun setLocalResetAT(
         time: Long
     ) {
+        Log.d(
+            "RESET",
+            "setLocalResetAT($time)"
+        )
         repository.saveLocalResetAT(time)
 
         _uiState.update {

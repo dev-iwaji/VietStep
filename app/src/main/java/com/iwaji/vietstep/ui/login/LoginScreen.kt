@@ -38,6 +38,7 @@ import android.util.Log
 fun LoginScreen(
     authViewModel: AuthViewModel,
     isOnline: Boolean,
+    onLoginSuccess: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -70,6 +71,7 @@ fun LoginScreen(
                     authViewModel.refreshLoginState()
 
                     isLoggingIn = false
+                    onLoginSuccess()
                     onDismiss()
                 }
 
@@ -172,5 +174,8 @@ fun firebaseAuthWithGoogle(
         )
         .addOnSuccessListener {
             onSuccess()
+        }
+        .addOnFailureListener { e ->
+            Log.e("LOGIN", "Failure", e)
         }
 }

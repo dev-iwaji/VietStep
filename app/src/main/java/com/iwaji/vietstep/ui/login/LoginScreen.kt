@@ -75,14 +75,13 @@ fun LoginScreen(
                     onDismiss()
                 }
 
-            } catch (e: Exception) {
+            } catch (e: ApiException) {
                 isLoggingIn = false
 
-                Log.e(
-                    "GoogleLogin",
-                    "error",
-                    e
-                )
+                Log.e("GoogleLogin", "statusCode=${e.statusCode}")
+                Log.e("GoogleLogin", "status=${e.status}")
+                Log.e("GoogleLogin", "message=${e.message}")
+                Log.e("GoogleLogin", "error", e)
             }
         }
 
@@ -126,10 +125,14 @@ fun LoginScreen(
                     Button(
                         onClick = {
                             isLoggingIn = true
+                            googleSignInClient
+                                .signOut()
+                                .addOnCompleteListener {
 
-                            launcher.launch(
-                                googleSignInClient.signInIntent
-                            )
+                                    launcher.launch(
+                                        googleSignInClient.signInIntent
+                                    )
+                                }
                         }
                     ) {
                         Text("Googleでログイン")

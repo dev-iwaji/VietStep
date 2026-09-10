@@ -427,16 +427,20 @@ fun MainScreen(
                                         GoogleLoginHelper
                                             .getClient(context)
                                             .signOut()
+                                            .addOnCompleteListener {
 
-                                        Toast.makeText(
-                                            context,
-                                            "アカウントを削除しました",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                                authViewModel.refreshLoginState()
 
-                                        isDeleting = false
-                                        showSettings = true
-                                        showLogin = false
+                                                Toast.makeText(
+                                                    context,
+                                                    "アカウントを削除しました",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+
+                                                isDeleting = false
+                                                showSettings = true
+                                                showLogin = false
+                                            }
                                     },
 
                                     onError = { e ->

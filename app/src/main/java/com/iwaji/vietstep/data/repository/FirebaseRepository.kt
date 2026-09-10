@@ -80,6 +80,9 @@ class FirebaseRepository {
         try {
             // ✅ Firebase Authentication のユーザー削除
             user.delete().await()
+
+            // ✅ FirebaseAuthの状態もクリア
+            auth.signOut()
         }
          catch (e: FirebaseAuthRecentLoginRequiredException) {
             // ✅ UI側へ通知する

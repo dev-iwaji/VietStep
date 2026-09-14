@@ -16,7 +16,7 @@ android {
         applicationId "com.iwaji.vietstep"
         minSdk 31
         targetSdk 36
-        versionCode 104
+        versionCode 105
         versionName "1.0.0"
     }
 
@@ -43,6 +43,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation 'com.google.firebase:firebase-analytics'
     implementation("com.google.android.gms:play-services-auth:21.4.0")
     implementation 'androidx.activity:activity-compose:1.9.0'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0"

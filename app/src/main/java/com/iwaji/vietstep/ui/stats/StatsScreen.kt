@@ -208,6 +208,9 @@ fun StatsScreen(
                             chart.animateY(1000)
                             chart.setCenterTextSize(24f)
                             chart.setCenterTextColor(AndroidColor.BLACK)
+                            chart.isRotationEnabled = false
+                            chart.isHighlightPerTapEnabled = false
+                            chart.legend.isEnabled = true
                         },
                         modifier = Modifier
                             .fillMaxWidth()

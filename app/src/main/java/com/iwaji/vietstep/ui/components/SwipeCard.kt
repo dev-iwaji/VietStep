@@ -106,7 +106,7 @@ fun SwipeCard(
 
         if (offsetX > 80) {
             Text(
-                "✔",
+                "〇",
                 fontSize = 60.sp,
                 color = Color.Green,
                 modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)

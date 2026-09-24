@@ -53,11 +53,16 @@ fun LoginScreen(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
 
+            Log.e("LOGIN", "resultCode=${result.resultCode}")
+            Log.e("LOGIN", "intent=${result.data}")
+
             val task =
                 GoogleSignIn
                     .getSignedInAccountFromIntent(
                         result.data
                     )
+
+            Log.e("LOGIN", "GoogleSignIn task created")
 
             try {
                 val account =
@@ -65,9 +70,18 @@ fun LoginScreen(
                         ApiException::class.java
                     )
 
+                Log.e("LOGIN", "account.id=${account.id}")
+                Log.e("LOGIN", "account.email=${account.email}")
+                Log.e("LOGIN", "displayName=${account.displayName}")
+                Log.e("LOGIN", "idToken=${account.idToken}")
+                Log.e("LOGIN", "serverAuthCode=${account.serverAuthCode}")
+
                 firebaseAuthWithGoogle(
                     account.idToken!!
                 ) {
+
+                    Log.e("LOGIN", "LoginScreen onSuccess")
+
                     authViewModel.refreshLoginState()
 
                     isLoggingIn = false
@@ -78,10 +92,13 @@ fun LoginScreen(
             } catch (e: ApiException) {
                 isLoggingIn = false
 
-                Log.e("GoogleLogin", "statusCode=${e.statusCode}")
-                Log.e("GoogleLogin", "status=${e.status}")
-                Log.e("GoogleLogin", "message=${e.message}")
-                Log.e("GoogleLogin", "error", e)
+                Log.e("LOGIN", "statusCode=${e.statusCode}")
+                Log.e("LOGIN", "status=${e.status}")
+                Log.e("LOGIN", "message=${e.message}")
+                Log.e("LOGIN", "localized=${e.localizedMessage}")
+                Log.e("LOGIN", "cause=${e.cause}")
+
+                e.printStackTrace()
             }
         }
 
@@ -129,6 +146,8 @@ fun LoginScreen(
                                 .signOut()
                                 .addOnCompleteListener {
 
+                                    Log.e("LOGIN", "launch Google SignIn")
+
                                     launcher.launch(
                                         googleSignInClient.signInIntent
                                     )
@@ -162,6 +181,8 @@ fun firebaseAuthWithGoogle(
     idToken: String,
     onSuccess: () -> Unit
 ) {
+    Log.e("LOGIN", "FirebaseAuth start")
+    Log.e("LOGIN", "token=${idToken.take(30)}...")
 
     val credential =
         GoogleAuthProvider
@@ -170,15 +191,43 @@ fun firebaseAuthWithGoogle(
                 null
             )
 
+    Log.e("LOGIN", "credential created")
+
     FirebaseAuth
         .getInstance()
         .signInWithCredential(
             credential
         )
+        .addOnCompleteListener { task ->
+
+            Log.e("LOGIN", "onComplete")
+            Log.e("LOGIN", "isSuccessful=${task.isSuccessful}")
+            Log.e("LOGIN", "isComplete=${task.isComplete}")
+
+            if (task.exception != null) {
+                Log.e("LOGIN", "task.exception", task.exception!!)
+            }
+        }
         .addOnSuccessListener {
+            Log.e("LOGIN", "SUCCESS")
+            Log.e(
+                "LOGIN",
+                "uid=${FirebaseAuth.getInstance().currentUser?.uid}"
+            )
+
             onSuccess()
         }
         .addOnFailureListener { e ->
+            Log.e("LOGIN", "FAILED")
             Log.e("LOGIN", "Failure", e)
+            Log.e("LOGIN", "message=${e.message}")
+            Log.e(
+                "LOGIN",
+                "exceptionClass=${e.javaClass.name}"
+            )
+
+            if (e is com.google.firebase.auth.FirebaseAuthException) {
+                Log.e("LOGIN", "errorCode=${e.errorCode}")
+            }
         }
 }

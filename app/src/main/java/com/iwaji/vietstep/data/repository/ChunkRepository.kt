@@ -165,8 +165,6 @@ class ChunkRepository(
     }
 
     fun loadFilterDifficulty(): Set<String> {
-//        return prefs.getStringSet(
-//            PrefKeys.CHUNK_FILTER_DIFFICULTY,
         return prefs
             .getStringSet(PrefKeys.CHUNK_FILTER_DIFFICULTY, null)
             ?.toSet()

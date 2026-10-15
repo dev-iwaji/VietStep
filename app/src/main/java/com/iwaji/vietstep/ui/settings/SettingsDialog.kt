@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +44,8 @@ import com.iwaji.vietstep.R
 import com.iwaji.vietstep.util.playSound
 import com.iwaji.vietstep.BuildConfig
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 
 @Composable
 fun SettingsDialog(
@@ -89,7 +93,11 @@ fun SettingsDialog(
 
         text = {
 
-            Column {
+            val scrollState = rememberScrollState()
+
+            Column(
+                modifier = Modifier.verticalScroll(scrollState)
+            ) {
 
                 Text(
                     text = "Firebase同期",
@@ -109,18 +117,34 @@ fun SettingsDialog(
                         Modifier.width(16.dp)
                     )
 
-                    Text(
-                        text = when {
-                            !isFirebaseLoggedIn ->
-                                "❌ 未ログイン"
+                    when {
+                    !isFirebaseLoggedIn -> {
+                        Text("❌ 未ログイン")
+                    }
 
-                            !isOnline ->
-                                "ログイン済み（オフライン）"
+                    !isOnline -> {
+                        Text("ログイン済み（オフライン）")
+                    }
 
-                            else ->
-                                "✅ 接続中"
+                        else -> {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .background(
+                                            Color(0xFF4CAF50),
+                                            CircleShape
+                                        )
+                                )
+
+                                Spacer(Modifier.width(6.dp))
+
+                                Text("接続中")
+                            }
                         }
-                    )
+                    }
                 }
                 Spacer(Modifier.width(16.dp))
 

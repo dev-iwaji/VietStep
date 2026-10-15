@@ -1,4 +1,4 @@
-# Gradle
+﻿# Gradle
 .gradle/
 **/build/
 
@@ -15,6 +15,11 @@ local.properties
 
 # Android generated files
 captures/
+
+# Release outputs
+app/release/
+*.apk
+*.aab
 
 # Keystore and signing files
 *.jks

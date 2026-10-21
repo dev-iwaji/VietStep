@@ -16,8 +16,20 @@ android {
         applicationId "com.iwaji.vietstep"
         minSdk 31
         targetSdk 36
-        versionCode 200
-        versionName "2.0.0-alpha1"
+        versionCode 108
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+
+            proguardFiles(
+                    getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            )
+        }
     }
 
     buildFeatures { compose true }

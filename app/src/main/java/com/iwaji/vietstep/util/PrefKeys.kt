@@ -26,6 +26,7 @@ object PrefKeys {
     const val CHUNK_FILTER_CATEGORY = "chunk_filter_category"
     const val CHUNK_FILTER_DIFFICULTY = "chunk_filter_difficulty"
     const val CHUNK_WEAK_MODE = "chunk_weak_mode"
+    const val CHUNK_STUDY_HISTORY = "chunk_study_history"
 
     // Grammar
     const val GRAMMAR_DECK_INDEX = "grammar_deck_index"

@@ -492,7 +492,8 @@ class FirebaseRepository {
     suspend fun saveChunkLearningState(
         progress: String,
         deckOrder: String,
-        deckIndex: Int
+        deckIndex: Int,
+        studyHistory: String
     ) {
         val uid = getUid()
             ?: throw IllegalStateException(
@@ -527,6 +528,12 @@ class FirebaseRepository {
                 )
             )
 
+            batch.set(
+                chunkCollection.document("studyHistory"),
+                mapOf(
+                    "studyHistory" to studyHistory
+                )
+            )
         }.await()
     }
 
@@ -592,6 +599,12 @@ class FirebaseRepository {
                 .get()
                 .await()
 
+        val studyHistorySnapshot =
+            chunkCollection
+                .document("studyHistory")
+                .get()
+                .await()
+
         val filterDifficultySnapshot =
             chunkCollection
                 .document("filterDifficulty")
@@ -637,6 +650,15 @@ class FirebaseRepository {
                         ?: 0
                 } else {
                     0
+                },
+
+            studyHistory =
+                if (studyHistorySnapshot.exists()) {
+                    studyHistorySnapshot
+                        .getString("studyHistory")
+                        ?: "[]"
+                } else {
+                    "[]"
                 },
 
             filterDifficulty =
@@ -1031,6 +1053,10 @@ class FirebaseRepository {
 
             batch.delete(
                 chunkCollection.document("deckOrder")
+            )
+
+            batch.delete(
+                chunkCollection.document("studyHistory")
             )
         }.await()
     }

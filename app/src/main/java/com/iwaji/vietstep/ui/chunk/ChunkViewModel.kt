@@ -27,6 +27,7 @@ import com.iwaji.vietstep.domain.learning.updateChunk
 import com.iwaji.vietstep.util.loadChunkProgress
 import com.iwaji.vietstep.util.saveChunkProgress
 import android.util.Log
+import com.iwaji.vietstep.data.model.DailyStat
 
 class ChunkViewModel : ViewModel() {
     private lateinit var repository: ChunkRepository
@@ -266,6 +267,8 @@ class ChunkViewModel : ViewModel() {
 
         saveChunkProgress(repository, updated)
 
+        repository.addStudyResult(correct)
+
         learningRevision++
 
         _uiState.update { state ->
@@ -342,6 +345,15 @@ class ChunkViewModel : ViewModel() {
             repository.uploadDeckState()
         }
     }
+
+    fun getTodayStat(): DailyStat? {
+        return repository.getTodayStat()
+    }
+
+    fun getLast7DaysData(): List<Pair<String, Int>> {
+        return repository.getLast7DaysData()
+    }
+
 
     fun updateQuizStats(
         correct: Boolean

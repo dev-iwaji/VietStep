@@ -1,4 +1,4 @@
-package com.iwaji.vietstep.domain
+package com.iwaji.vietstep.domain.learning
 
 import com.iwaji.vietstep.data.model.Chunk
 

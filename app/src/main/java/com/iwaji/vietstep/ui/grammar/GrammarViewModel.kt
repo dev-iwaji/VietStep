@@ -15,7 +15,7 @@ import com.iwaji.vietstep.data.repository.FirebaseRepository
 import com.iwaji.vietstep.data.repository.GrammarRepository
 import com.iwaji.vietstep.data.model.updated
 import com.iwaji.vietstep.data.source.grammarList
-import com.iwaji.vietstep.domain.generateGrammarDeck
+import com.iwaji.vietstep.domain.deck.generateGrammarDeck
 import com.iwaji.vietstep.data.model.QuizStats
 
 class GrammarViewModel : ViewModel() {

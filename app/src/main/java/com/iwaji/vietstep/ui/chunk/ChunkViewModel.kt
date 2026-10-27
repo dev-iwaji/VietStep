@@ -22,8 +22,8 @@ import com.iwaji.vietstep.data.model.updated
 import com.iwaji.vietstep.data.repository.FirebaseRepository
 import com.iwaji.vietstep.data.repository.ChunkRepository
 import com.iwaji.vietstep.data.source.baseChunks
-import com.iwaji.vietstep.domain.generateChunkDeck
-import com.iwaji.vietstep.domain.updateChunk
+import com.iwaji.vietstep.domain.deck.generateChunkDeck
+import com.iwaji.vietstep.domain.learning.updateChunk
 import com.iwaji.vietstep.util.loadChunkProgress
 import com.iwaji.vietstep.util.saveChunkProgress
 import android.util.Log

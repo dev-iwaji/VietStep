@@ -19,8 +19,8 @@ import com.iwaji.vietstep.data.model.CsvFile
 import com.iwaji.vietstep.data.model.Word
 import com.iwaji.vietstep.data.model.deckKey
 import com.iwaji.vietstep.data.source.baseWords
-import com.iwaji.vietstep.domain.generateWordDeck
-import com.iwaji.vietstep.domain.updateWord
+import com.iwaji.vietstep.domain.deck.generateWordDeck
+import com.iwaji.vietstep.domain.learning.updateWord
 import com.iwaji.vietstep.data.model.DailyStat
 import com.iwaji.vietstep.data.model.QuizStats
 import com.iwaji.vietstep.data.repository.FirebaseRepository

@@ -1,8 +1,8 @@
-package com.iwaji.vietstep.domain
+package com.iwaji.vietstep.domain.deck
 
-import com.iwaji.vietstep.data.model.Word
 import com.iwaji.vietstep.data.model.Chunk
 import com.iwaji.vietstep.data.model.Grammar
+import com.iwaji.vietstep.data.model.Word
 
 fun generateWordDeck(
     words: List<Word>
@@ -13,14 +13,6 @@ fun generateWordDeck(
     val lv3 = words.filter { it.level == 3 }
     val lv4 = words.filter { it.level == 4 }
     val lv5 = words.filter { it.level == 5 }
-
-    fun pick(
-        list: List<Word>, rate: Float
-    ): List<Word> {
-        if (list.isEmpty()) return emptyList()
-        val count = (list.size * rate).toInt().coerceAtLeast(1)
-        return list.shuffled().take(count)
-    }
 
     val selected = mutableListOf<Word>()
 
@@ -42,14 +34,6 @@ fun generateChunkDeck(
     val lv3 = chunks.filter { it.level == 3 }
     val lv4 = chunks.filter { it.level == 4 }
     val lv5 = chunks.filter { it.level == 5 }
-
-    fun pick(
-        list: List<Chunk>, rate: Float
-    ): List<Chunk> {
-        if (list.isEmpty()) return emptyList()
-        val count = (list.size * rate).toInt().coerceAtLeast(1)
-        return list.shuffled().take(count)
-    }
 
     val selected = mutableListOf<Chunk>()
 
@@ -86,4 +70,13 @@ fun generateGrammarDeck(
             candidates.random()
         }
         .toMutableList()
+}
+
+private fun <T> pick(
+    list: List<T>,
+    rate: Float
+): List<T> {
+    if (list.isEmpty()) return emptyList()
+    val count = (list.size * rate).toInt().coerceAtLeast(1)
+    return list.shuffled().take(count)
 }

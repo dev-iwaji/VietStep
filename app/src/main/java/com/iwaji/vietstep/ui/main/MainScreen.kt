@@ -546,9 +546,6 @@ fun MainScreen(
                                 mainUiState.learningTab.ordinal
                         ) {
 
-                            // =========================
-                            // ✅ 単語
-                            // =========================
                             Tab(
                                 selected =
                                     mainUiState.learningTab == LearningTab.WORD,
@@ -658,6 +655,9 @@ fun MainScreen(
 
                     StatsScreen(
                         wordViewModel = wordViewModel,
+                        chunkViewModel = chunkViewModel,
+                        grammarViewModel = grammarViewModel,
+                        conversationViewModel = conversationViewModel,
                         refreshKey = statsRefreshKey
                     )
                 }

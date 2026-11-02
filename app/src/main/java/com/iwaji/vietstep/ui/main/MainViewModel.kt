@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import com.iwaji.vietstep.data.repository.FirebaseRepository
 import com.iwaji.vietstep.data.repository.MainRepository
 import android.util.Log
-import com.iwaji.vietstep.ui.main.LearningTab
 
 class MainViewModel : ViewModel() {
 

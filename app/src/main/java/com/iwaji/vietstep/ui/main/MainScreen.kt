@@ -22,6 +22,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 
@@ -200,8 +207,6 @@ fun MainScreen(
         resetAll()
     }
 
-    var tab by remember { mutableStateOf(0) }
-
     val lifecycleOwner =
         LocalLifecycleOwner.current
 
@@ -251,32 +256,6 @@ fun MainScreen(
                 callback
             )
         }
-    }
-
-    fun selectTab(newTab: Int) {
-        if (newTab == tab) {
-            return
-        }
-
-        when (tab) {
-            0 -> {
-                wordViewModel.uploadLearningStateIfDirty()
-            }
-
-            1 -> {
-                chunkViewModel.uploadLearningStateIfDirty()
-            }
-
-            2 -> {
-                grammarViewModel.uploadDeckStateIfDirty()
-            }
-
-            3 -> {
-                conversationViewModel.uploadDeckStateIfDirty()
-            }
-        }
-
-        tab = newTab
     }
 
     // ✅ 効果音設定
@@ -385,7 +364,10 @@ fun MainScreen(
                                         conversationViewModel.resetQuizStats()
 
                                         statsRefreshKey++
-                                        tab = 0
+
+                                        mainViewModel.setLearningTab(
+                                            LearningTab.WORD
+                                        )
 
                                     } catch (e: Exception) {
                                         Log.e(
@@ -478,8 +460,73 @@ fun MainScreen(
                     }
                 }
             )
-        }
+        },
 
+        bottomBar = {
+
+            NavigationBar {
+
+                NavigationBarItem(
+                    selected = mainUiState.bottomPage == BottomPage.LEARNING,
+                    onClick = {
+                        mainViewModel.setBottomPage(
+                            BottomPage.LEARNING
+                        )
+                    },
+                    icon = {
+                        Icon(Icons.Default.School, null)
+                    },
+                    label = {
+                        Text("学習")
+                    }
+                )
+
+                NavigationBarItem(
+                    selected = mainUiState.bottomPage == BottomPage.SEARCH,
+                    onClick = {
+                        mainViewModel.setBottomPage(
+                            BottomPage.SEARCH
+                        )
+                    },
+                    icon = {
+                        Icon(Icons.Default.Search, null)
+                    },
+                    label = {
+                        Text("検索")
+                    }
+                )
+
+                NavigationBarItem(
+                    selected = mainUiState.bottomPage == BottomPage.STATS,
+                    onClick = {
+                        mainViewModel.setBottomPage(
+                            BottomPage.STATS
+                        )
+                    },
+                    icon = {
+                        Icon(Icons.Default.BarChart, null)
+                    },
+                    label = {
+                        Text("統計")
+                    }
+                )
+
+                NavigationBarItem(
+                    selected = mainUiState.bottomPage == BottomPage.SETTINGS,
+                    onClick = {
+                        mainViewModel.setBottomPage(
+                            BottomPage.SETTINGS
+                        )
+                    },
+                    icon = {
+                        Icon(Icons.Default.Settings, null)
+                    },
+                    label = {
+                        Text("設定")
+                    }
+                )
+            }
+        }
     ) { padding ->
 
         Surface(
@@ -488,88 +535,136 @@ fun MainScreen(
                 .padding(padding)
         ) {
 
-            Column(Modifier.fillMaxSize()) {
+            when (mainUiState.bottomPage) {
 
-                // ✅ タブ
-                TabRow(selectedTabIndex = tab) {
-                    Tab(tab == 0, onClick = { selectTab(0) }) { Text("単語") }
-                    Tab(tab == 1, onClick = { selectTab(1) }) { Text("文型") }
-                    Tab(tab == 2, onClick = { selectTab(2) }) { Text("文法") }
-                    Tab(tab == 3, onClick = { selectTab(3) }) { Text("会話") }
-                    Tab(tab == 4, onClick = { selectTab(4) }) { Text("検索") }
-                    Tab(tab == 5, onClick = { selectTab(5) }) { Text("統計") }
+                BottomPage.LEARNING -> {
+
+                    Column {
+
+                        TabRow(
+                            selectedTabIndex =
+                                mainUiState.learningTab.ordinal
+                        ) {
+
+                            // =========================
+                            // ✅ 単語
+                            // =========================
+                            Tab(
+                                selected =
+                                    mainUiState.learningTab == LearningTab.WORD,
+                                onClick = {
+                                    mainViewModel.setLearningTab(
+                                        LearningTab.WORD
+                                    )
+                                }
+                            ) {
+                                Text("単語")
+                            }
+
+                            Tab(
+                                selected =
+                                    mainUiState.learningTab == LearningTab.CHUNK,
+                                onClick = {
+                                    mainViewModel.setLearningTab(
+                                        LearningTab.CHUNK
+                                    )
+                                }
+                            ) {
+                                Text("文型")
+                            }
+
+                            Tab(
+                                selected =
+                                    mainUiState.learningTab == LearningTab.GRAMMAR,
+                                onClick = {
+                                    mainViewModel.setLearningTab(
+                                        LearningTab.GRAMMAR
+                                    )
+                                }
+                            ) {
+                                Text("文法")
+                            }
+
+                            Tab(
+                                selected =
+                                    mainUiState.learningTab == LearningTab.CONVERSATION,
+                                onClick = {
+                                    mainViewModel.setLearningTab(
+                                        LearningTab.CONVERSATION
+                                    )
+                                }
+                            ) {
+                                Text("会話")
+                            }
+                        }
+
+                        when (mainUiState.learningTab) {
+
+                            LearningTab.WORD ->
+                                WordScreen(
+                                    soundEnabled = soundEnabled,
+                                    soundVolume = mainUiState.soundVolume,
+                                    tts = tts,
+                                    wordViewModel = wordViewModel,
+                                )
+
+                            LearningTab.CHUNK ->
+                                ChunkScreen(
+                                    soundEnabled = soundEnabled,
+                                    soundVolume = mainUiState.soundVolume,
+                                    tts = tts,
+                                    viewModel = chunkViewModel
+                                )
+
+                            LearningTab.GRAMMAR ->
+                                GrammarScreen(
+                                    soundEnabled = soundEnabled,
+                                    soundVolume = mainUiState.soundVolume,
+                                    tts = tts,
+                                    viewModel = grammarViewModel
+                                )
+
+                            LearningTab.CONVERSATION ->
+                                ConversationScreen(
+                                    soundEnabled = soundEnabled,
+                                    soundVolume = mainUiState.soundVolume,
+                                    tts = tts,
+                                    viewModel = conversationViewModel
+                                )
+                        }
+                    }
                 }
 
-                // =========================
-                // ✅ 単語
-                // =========================
-                if (tab == 0) {
-                    WordScreen(
-                        soundEnabled = soundEnabled,
-                        soundVolume = mainUiState.soundVolume,
-                        tts = tts,
-                        wordViewModel = wordViewModel,
-                    )
-                }
-
-                // =========================
-                // ✅ 文型
-                // =========================
-                if (tab == 1) {
-                    ChunkScreen(
-                        soundEnabled = soundEnabled,
-                        soundVolume = mainUiState.soundVolume,
-                        tts = tts,
-                        viewModel = chunkViewModel
-                    )
-                }
-
-                // =========================
-                // ✅ 文法
-                // =========================
-                if (tab == 2) {
-                    GrammarScreen(
-                        soundEnabled = soundEnabled,
-                        soundVolume = mainUiState.soundVolume,
-                        tts = tts,
-                        viewModel = grammarViewModel
-                    )
-                }
-
-                // =========================
-                // ✅ 会話
-                // =========================
-                if (tab == 3) {
-                    ConversationScreen(
-                        soundEnabled = soundEnabled,
-                        soundVolume = mainUiState.soundVolume,
-                        tts = tts,
-                        viewModel = conversationViewModel
-                    )
-                }
-
-                // =========================
-                // ✅ 検索
-                // =========================
-                if (tab == 4) {
+                BottomPage.SEARCH -> {
 
                     SearchScreen(
                         wordViewModel = wordViewModel,
                         onSelect = { word ->
+
                             wordViewModel.jumpToWord(word)
-                            tab = 0
+
+                            mainViewModel.setBottomPage(
+                                BottomPage.LEARNING
+                            )
+
+                            mainViewModel.setLearningTab(
+                                LearningTab.WORD
+                            )
                         }
                     )
                 }
 
-                // =========================
-                // ✅ 統計
-                // =========================
-                if (tab == 5) {
+                BottomPage.STATS -> {
+
                     StatsScreen(
                         wordViewModel = wordViewModel,
                         refreshKey = statsRefreshKey
                     )
+                }
+
+                BottomPage.SETTINGS -> {
+
+                    // 後でSettingsScreenにする
                 }
             }
         }

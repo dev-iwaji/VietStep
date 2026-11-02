@@ -6,4 +6,8 @@ data class MainUiState (
     val soundVolume: Float = 0.5f,
 
     val darkMode: Boolean = false,
+
+    val bottomPage: BottomPage = BottomPage.LEARNING,
+
+    val learningTab: LearningTab = LearningTab.WORD,
 )

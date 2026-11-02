@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import com.iwaji.vietstep.data.repository.FirebaseRepository
 import com.iwaji.vietstep.data.repository.MainRepository
 import android.util.Log
+import com.iwaji.vietstep.ui.main.LearningTab
 
 class MainViewModel : ViewModel() {
 
@@ -101,6 +102,26 @@ class MainViewModel : ViewModel() {
 
             it.copy(
                 darkMode = enabled
+            )
+        }
+    }
+
+    fun setBottomPage(
+        page: BottomPage
+    ) {
+        _uiState.update {
+            it.copy(
+                bottomPage = page
+            )
+        }
+    }
+
+    fun setLearningTab(
+        tab: LearningTab
+    ) {
+        _uiState.update {
+            it.copy(
+                learningTab = tab
             )
         }
     }

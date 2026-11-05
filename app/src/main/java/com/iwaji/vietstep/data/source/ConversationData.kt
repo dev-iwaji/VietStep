@@ -344,6 +344,14 @@ val conversationList = listOf(
         "称賛"
     ),
     Conversation(
+        "Vậy à.",
+        "そうですか",
+        "一般",
+        "あいさつ",
+        "反応",
+        "相づち"
+    ),
+    Conversation(
         "Ồ, vậy hả?",
         "へえ、そうなんだ",
         "一般",
@@ -353,11 +361,51 @@ val conversationList = listOf(
     ),
     Conversation(
         "Đúng rồi.",
+        "そうです",
+        "一般",
+        "あいさつ",
+        "反応",
+        "同意"
+    ),
+    Conversation(
+        "Đúng vậy.",
         "その通り",
         "一般",
         "あいさつ",
         "反応",
         "同意"
+    ),
+    Conversation(
+        "Chính xác.",
+        "正確です",
+        "一般",
+        "あいさつ",
+        "反応",
+        "同意"
+    ),
+    Conversation(
+        "Được chứ.",
+        "もちろんです",
+        "一般",
+        "あいさつ",
+        "反応",
+        "肯定"
+    ),
+    Conversation(
+        "Không hẳn.",
+        "必ずしもそうではありません",
+        "一般",
+        "あいさつ",
+        "反応",
+        "否定"
+    ),
+    Conversation(
+        "Có lẽ vậy.",
+        "たぶんそうです",
+        "一般",
+        "あいさつ",
+        "反応",
+        "不確か"
     ),
     Conversation(
         "Thế à?",

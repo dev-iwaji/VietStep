@@ -26,6 +26,10 @@ fun StatsScreen(
     conversationViewModel: ConversationViewModel,
     refreshKey: Int
 ) {
+    var statsTab by rememberSaveable {
+        mutableStateOf(StatsTab.OVERVIEW)
+    }
+
     val wordWeeklyData =
         remember(refreshKey) {
             wordViewModel.getLast7DaysData()
@@ -36,9 +40,15 @@ fun StatsScreen(
             wordViewModel.getTodayStat()
         }
 
-    var statsTab by rememberSaveable {
-        mutableStateOf(StatsTab.OVERVIEW)
-    }
+    val chunkWeeklyData =
+        remember(refreshKey) {
+            chunkViewModel.getLast7DaysData()
+        }
+
+    val chunkTodayStat =
+        remember(refreshKey) {
+            chunkViewModel.getTodayStat()
+        }
 
     Column {
 
@@ -116,14 +126,12 @@ fun StatsScreen(
                     weeklyData = wordWeeklyData
                 )
 
-            StatsTab.CHUNK -> {
-/*
+            StatsTab.CHUNK ->
                 ChunkStatsPage(
                     uiState = chunkViewModel.uiState.collectAsState().value,
-                    refreshKey = refreshKey
+                    todayStat = chunkTodayStat,
+                    weeklyData = chunkWeeklyData
                 )
-*/
-            }
 
             StatsTab.GRAMMAR -> {
 /*

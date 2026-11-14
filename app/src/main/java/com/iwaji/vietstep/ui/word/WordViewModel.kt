@@ -28,6 +28,9 @@ import com.iwaji.vietstep.data.repository.WordRepository
 import com.iwaji.vietstep.data.model.updated
 import com.iwaji.vietstep.util.saveWordProgress
 import com.iwaji.vietstep.util.loadWordProgress
+import com.iwaji.vietstep.data.model.CategoryStats
+import com.iwaji.vietstep.domain.stats.CategoryStatsCalculator
+
 import android.util.Log
 
 class WordViewModel : ViewModel() {
@@ -458,6 +461,16 @@ class WordViewModel : ViewModel() {
                 it.quizStats.updated(correct)
             )
         }
+    }
+
+    fun getCategoryStats(): CategoryStats {
+        return CategoryStatsCalculator.calc(
+            uiState.value.words,
+            levelOf = { it.level },
+            isLearned = {
+                it.recentResults.isNotEmpty()
+            }
+        )
     }
 
     private fun rebuildWords(

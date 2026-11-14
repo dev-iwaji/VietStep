@@ -6,7 +6,6 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,6 +29,11 @@ fun StatsScreen(
         mutableStateOf(StatsTab.OVERVIEW)
     }
 
+    val wordCategoryStats =
+        remember(refreshKey) {
+            wordViewModel.getCategoryStats()
+        }
+
     val wordWeeklyData =
         remember(refreshKey) {
             wordViewModel.getLast7DaysData()
@@ -38,6 +42,11 @@ fun StatsScreen(
     val wordTodayStat =
         remember(refreshKey) {
             wordViewModel.getTodayStat()
+        }
+
+    val chunkCategoryStats =
+        remember(refreshKey) {
+            chunkViewModel.getCategoryStats()
         }
 
     val chunkWeeklyData =
@@ -111,27 +120,29 @@ fun StatsScreen(
         when (statsTab) {
 
             StatsTab.OVERVIEW -> {
-                /*
                 OverviewPage(
-                    uiState = wordViewModel.uiState.collectAsState().value,
-                    refreshKey = refreshKey
+                    wordViewModel = wordViewModel,
+                    chunkViewModel = chunkViewModel,
+                    grammarViewModel = grammarViewModel,
+                    conversationViewModel = conversationViewModel
                 )
-*/
             }
 
-            StatsTab.WORD ->
+            StatsTab.WORD -> {
                 WordStatsPage(
-                    uiState = wordViewModel.uiState.collectAsState().value,
+                    stats = wordCategoryStats,
                     todayStat = wordTodayStat,
                     weeklyData = wordWeeklyData
                 )
+            }
 
-            StatsTab.CHUNK ->
+            StatsTab.CHUNK -> {
                 ChunkStatsPage(
-                    uiState = chunkViewModel.uiState.collectAsState().value,
+                    stats = chunkCategoryStats,
                     todayStat = chunkTodayStat,
                     weeklyData = chunkWeeklyData
                 )
+            }
 
             StatsTab.GRAMMAR -> {
 /*

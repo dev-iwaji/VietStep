@@ -1,6 +1,7 @@
 package com.iwaji.vietstep.ui.chunk
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,11 +10,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 
 import android.content.SharedPreferences
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
-import com.google.gson.reflect.TypeToken
 
 import com.iwaji.vietstep.data.model.deckKey
 import com.iwaji.vietstep.data.model.Chunk
@@ -26,8 +24,11 @@ import com.iwaji.vietstep.domain.deck.generateChunkDeck
 import com.iwaji.vietstep.domain.learning.updateChunk
 import com.iwaji.vietstep.util.loadChunkProgress
 import com.iwaji.vietstep.util.saveChunkProgress
-import android.util.Log
+import com.iwaji.vietstep.data.model.CategoryStats
 import com.iwaji.vietstep.data.model.DailyStat
+import com.iwaji.vietstep.domain.stats.CategoryStatsCalculator
+
+import android.util.Log
 
 class ChunkViewModel : ViewModel() {
     private lateinit var repository: ChunkRepository
@@ -364,6 +365,16 @@ class ChunkViewModel : ViewModel() {
                 it.quizStats.updated(correct)
             )
         }
+    }
+
+    fun getCategoryStats(): CategoryStats {
+        return CategoryStatsCalculator.calc(
+            uiState.value.chunks,
+            levelOf = { it.level },
+            isLearned = {
+                it.recentResults.isNotEmpty()
+            }
+        )
     }
 
     private fun nextCard() {

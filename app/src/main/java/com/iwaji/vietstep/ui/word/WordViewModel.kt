@@ -11,6 +11,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.core.net.toUri
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -97,7 +98,7 @@ class WordViewModel : ViewModel() {
                         savedDeckJson,
                         object : TypeToken<List<String>>() {}.type
                     )
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     emptyList()
                 }
 
@@ -289,7 +290,7 @@ class WordViewModel : ViewModel() {
         val content =
             context.contentResolver
                 .openInputStream(
-                    Uri.parse(uri)
+                    uri.toUri()
                 )
                 ?.bufferedReader()
                 ?.readText()
@@ -503,9 +504,9 @@ class WordViewModel : ViewModel() {
                 try {
                     parseCsv(
                         context,
-                        Uri.parse(file.uri)
+                        file.uri.toUri()
                     )
-                } catch (e: Exception ) {
+                } catch (_: Exception ) {
                     emptyList()
                 }
             }

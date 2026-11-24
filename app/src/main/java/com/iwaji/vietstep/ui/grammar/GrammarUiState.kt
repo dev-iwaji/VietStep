@@ -14,4 +14,9 @@ data class GrammarUiState(
 
     val speechRate: Float = 0.8f,
 
-    val quizStats: QuizStats = QuizStats(),)
+    val quizStats: QuizStats = QuizStats(),
+
+    val showLevelDialog: Boolean = false,
+
+    val currentLevel: Int = 5,
+)

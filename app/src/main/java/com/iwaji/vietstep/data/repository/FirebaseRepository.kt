@@ -14,6 +14,7 @@ import com.iwaji.vietstep.data.model.ChunkLearningState
 import com.iwaji.vietstep.data.model.WordLearningState
 import com.iwaji.vietstep.data.model.ConversationLearningState
 import com.iwaji.vietstep.data.model.GrammarLearningState
+import com.iwaji.vietstep.data.model.GrammarProgress
 import android.util.Log
 
 class FirebaseRepository {
@@ -848,6 +849,21 @@ class FirebaseRepository {
             )
     }
 
+    fun saveGrammarProgress(progress: List<GrammarProgress>)
+    {
+        val uid = getUid() ?: return
+
+        db.collection("users")
+            .document(uid)
+            .collection("grammar")
+            .document("progress")
+            .set(
+                mapOf(
+                    "progress" to progress
+                )
+            )
+    }
+
     suspend fun saveConversationDeckState(
         deckIndex: Int
     ) {
@@ -856,7 +872,7 @@ class FirebaseRepository {
                 "Firebaseにログインしていません"
             )
 
-        val wordCollection =
+        val conversationCollection =
             db.collection("users")
                 .document(uid)
                 .collection("conversation")
@@ -864,7 +880,7 @@ class FirebaseRepository {
         db.runBatch { batch ->
 
             batch.set(
-                wordCollection.document("deckIndex"),
+                conversationCollection.document("deckIndex"),
                 mapOf(
                     "deckIndex" to deckIndex
                 )

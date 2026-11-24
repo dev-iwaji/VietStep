@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 
 import com.iwaji.vietstep.data.source.grammarList
 import com.iwaji.vietstep.ui.components.GenericQuizUI
+import com.iwaji.vietstep.ui.components.RankRatingDialog
 import com.iwaji.vietstep.manager.TtsManager
 
 @Composable
@@ -275,6 +276,26 @@ fun GrammarScreen(
             },
             onDismiss = {
                 showSettings = false
+            }
+        )
+    }
+
+    if (uiState.showLevelDialog) {
+
+        RankRatingDialog(
+
+            title = uiState.selectedTheme,
+
+            message = "理解度が上がったら★を増やしてください。",
+
+            currentRank = uiState.currentLevel,
+
+            onConfirm = { level ->
+                viewModel.updateThemeLevel(level)
+            },
+
+            onDismiss = {
+                viewModel.dismissLevelDialog()
             }
         )
     }

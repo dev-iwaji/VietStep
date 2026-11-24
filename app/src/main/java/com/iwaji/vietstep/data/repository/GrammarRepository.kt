@@ -2,10 +2,14 @@ package com.iwaji.vietstep.data.repository
 
 import android.content.SharedPreferences
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
 import com.iwaji.vietstep.data.model.GrammarLearningState
 import com.iwaji.vietstep.utils.PrefKeys
 import com.iwaji.vietstep.data.model.Grammar
-import com.google.gson.Gson
+import com.iwaji.vietstep.data.model.GrammarProgress
+import android.util.Log
 
 class GrammarRepository(
     private val prefs: SharedPreferences,
@@ -63,7 +67,6 @@ class GrammarRepository(
     }
 
     fun loadDeck(): List<Grammar> {
-
         val json =
             loadDeckOrder()
                 ?: return emptyList()
@@ -123,5 +126,29 @@ class GrammarRepository(
                 speed
             )
             .apply()
+    }
+
+    fun loadProgress(): List<GrammarProgress> {
+        val json =
+            prefs.getString(
+                "grammar_progress",
+                "[]"
+            ) ?: "[]"
+
+        return Gson().fromJson(
+            json,
+            object : TypeToken<List<GrammarProgress>>(){}.type
+        )
+    }
+
+    fun saveProgress(progress: List<GrammarProgress>)
+    {
+        val json = Gson().toJson(progress)
+
+        prefs.edit()
+            .putString("grammar_progress", json)
+            .apply()
+
+        firebaseRepository.saveGrammarProgress(progress)
     }
 }

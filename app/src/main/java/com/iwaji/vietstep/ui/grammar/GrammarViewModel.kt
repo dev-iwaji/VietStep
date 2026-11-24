@@ -11,12 +11,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.iwaji.vietstep.data.model.Grammar
+import com.iwaji.vietstep.data.model.GrammarProgress
 import com.iwaji.vietstep.data.repository.FirebaseRepository
 import com.iwaji.vietstep.data.repository.GrammarRepository
 import com.iwaji.vietstep.data.model.updated
 import com.iwaji.vietstep.data.source.grammarList
-import com.iwaji.vietstep.domain.deck.generateGrammarDeck
 import com.iwaji.vietstep.data.model.QuizStats
+import com.iwaji.vietstep.domain.deck.generateGrammarDeck
+import android.util.Log
 
 class GrammarViewModel : ViewModel() {
 
@@ -204,6 +206,50 @@ class GrammarViewModel : ViewModel() {
             rebuildDeck()
 
             uploadDeckStateIfDirty()
+
+            checkLevelDialog()
+        }
+    }
+
+    fun updateThemeLevel(level: Int) {
+
+        val theme = uiState.value.selectedTheme
+
+        val list = repository.loadProgress().toMutableList()
+
+        val index = list.indexOfFirst {
+            it.theme == theme
+        }
+
+        if (index >= 0) {
+
+            list[index] = list[index].copy(
+                level = level
+            )
+
+        } else {
+
+            list += GrammarProgress(
+                1,
+                theme,
+                level
+            )
+        }
+
+        repository.saveProgress(list)
+
+        _uiState.update {
+            it.copy(
+                showLevelDialog = false
+            )
+        }
+    }
+
+    fun dismissLevelDialog() {
+        _uiState.update {
+            it.copy(
+                showLevelDialog = false
+            )
         }
     }
 
@@ -255,5 +301,21 @@ class GrammarViewModel : ViewModel() {
 
         deckDirty = true
         deckRevision++
+    }
+
+    private fun checkLevelDialog() {
+
+        val theme = uiState.value.selectedTheme
+
+        val progress =
+            repository.loadProgress()
+                .find { it.theme == theme }
+
+        _uiState.update {
+            it.copy(
+                showLevelDialog = true,
+                currentLevel = progress?.level ?: 5
+            )
+        }
     }
 }

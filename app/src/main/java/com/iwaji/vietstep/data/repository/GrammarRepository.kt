@@ -76,7 +76,7 @@ class GrammarRepository(
                 json,
                 Array<Grammar>::class.java
             ).toList()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
